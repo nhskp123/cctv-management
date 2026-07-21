@@ -1,1785 +1,544 @@
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CCTV Management & Quotation System</title>
+    <!-- Tailwind CSS for modern UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Bengali and English -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Hind Siliguri', 'Inter', sans-serif;
+        }
+        /* Print Stylesheet */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printArea, #printArea * {
+                visibility: visible;
+            }
+            #printArea {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
 
-<!-- ============================================================
-     এখানে আপনার Supabase তথ্য বসান (মাত্র এই ২ লাইন বদলাতে হবে)
-     ============================================================ -->
-<script>
-  window.SUPABASE_URL = 'https://fndkgykipmkrnbrkwrsw.supabase.co';
-  window.SUPABASE_ANON_KEY = 'sb_publishable_m5hQKZHGrBq0Dg9fhKAerA_p_Aaxi4a';
-</script>
-
-<style>
-  :root{
-    --bg: #0f1416; --panel: #161d20; --panel-2: #1d262a; --line: #2a353a;
-    --ink: #e9eef0; --ink-dim: #93a3a8; --accent: #2fb8a6; --accent-dim: #1d726a;
-    --warn: #e0a63f; --danger: #d9694f; --plus: #3fae6a; --radius: 10px;
-    font-family: 'Hind Siliguri', 'Segoe UI', sans-serif;
-  }
-  body.theme-light{
-    --bg: #f2f5f6; --panel: #ffffff; --panel-2: #edf1f2; --line: #dbe2e4;
-    --ink: #1b2528; --ink-dim: #5c6c71; --warn: #b9770e; --danger: #c0392b; --plus: #1f8a4c;
-  }
-  *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--ink);min-height:100vh;}
-  .mono{font-family:'JetBrains Mono', monospace;}
-  button{font-family:inherit;cursor:pointer;}
-  input,select,textarea{font-family:inherit;}
-
-  #config-warning{
-    display:none;position:fixed;inset:0;background:var(--bg);z-index:100;color:var(--ink);
-    align-items:center;justify-content:center;padding:24px;
-  }
-  #config-warning .box{max-width:520px;background:var(--panel);border:1px solid var(--warn);border-radius:var(--radius);padding:24px;}
-  #config-warning h2{color:var(--warn);margin-top:0;}
-  #config-warning code{background:var(--panel-2);padding:2px 6px;border-radius:4px;}
-
-  #login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
-    background:radial-gradient(circle at 20% 20%, rgba(47,184,166,0.10), transparent 40%),
-      radial-gradient(circle at 80% 80%, rgba(224,166,63,0.06), transparent 40%), var(--bg);}
-  .login-card{width:360px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:32px;position:relative;overflow:hidden;}
-  .login-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;
-    background:linear-gradient(90deg,var(--accent),var(--warn));}
-  .login-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;color:var(--accent);text-transform:uppercase;margin-bottom:6px;}
-  .login-card h1{font-size:20px;margin:0 0 20px;color:var(--ink);}
-  .field{margin-bottom:14px;}
-  .field label{display:block;font-size:13px;color:var(--ink-dim);margin-bottom:6px;}
-  .field input, .field select, .field textarea{width:100%;padding:10px 12px;background:var(--panel-2);
-    border:1px solid var(--line);border-radius:8px;color:var(--ink);font-size:14px;outline:none;transition:border-color .15s;}
-  .field input:focus, .field select:focus, .field textarea:focus{border-color:var(--accent);}
-  .btn{padding:10px 16px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);
-    color:var(--ink);font-size:14px;font-weight:600;transition:.15s;}
-  .btn:hover{border-color:var(--accent);}
-  .btn-primary{background:var(--accent);border-color:var(--accent);color:#04201c;width:100%;}
-  .btn-primary:hover{background:#38cbb7;}
-  .err{color:var(--danger);font-size:13px;margin-top:8px;min-height:16px;}
-  .hint{font-size:12px;color:var(--ink-dim);margin-top:16px;line-height:1.6;}
-
-  #app{display:none;min-height:100vh;flex-direction:column;}
-  header.topbar{display:flex;align-items:center;gap:14px;padding:14px 24px;background:var(--panel);
-    border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
-  .brand{display:flex;align-items:center;gap:12px;flex:1;min-width:0;}
-  .brand img{width:38px;height:38px;border-radius:8px;object-fit:cover;background:var(--panel-2);}
-  .brand .logo-placeholder{width:38px;height:38px;border-radius:8px;background:var(--panel-2);border:1px dashed var(--line);
-    display:flex;align-items:center;justify-content:center;color:var(--ink-dim);font-size:11px;}
-  .brand-name{font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .brand-sub{font-size:11px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;letter-spacing:.05em;}
-  .topbar-actions{display:flex;gap:8px;align-items:center;}
-  .user-email{font-size:12px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;}
-  .icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--panel-2);
-    color:var(--ink-dim);display:flex;align-items:center;justify-content:center;font-size:16px;}
-  .icon-btn:hover{color:var(--accent);border-color:var(--accent);}
-
-  nav.tabs{display:flex;gap:4px;padding:0 24px;background:var(--panel);border-bottom:1px solid var(--line);}
-  nav.tabs button{padding:14px 18px;background:none;border:none;color:var(--ink-dim);font-size:14px;font-weight:600;
-    border-bottom:2px solid transparent;margin-bottom:-1px;}
-  nav.tabs button.active{color:var(--accent);border-bottom-color:var(--accent);}
-
-  main{flex:1;padding:24px;max-width:1180px;width:100%;margin:0 auto;}
-  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-  .toolbar input[type=text], .toolbar select{padding:9px 12px;background:var(--panel-2);border:1px solid var(--line);
-    border-radius:8px;color:var(--ink);font-size:13px;}
-  .spacer{flex:1;}
-
-  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
-  thead th{text-align:left;font-size:12px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em;
-    padding:10px 14px;background:var(--panel-2);border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;}
-  tbody td{padding:12px 14px;border-bottom:1px solid var(--line);font-size:14px;}
-  tbody tr:last-child td{border-bottom:none;}
-  tbody tr:hover{background:rgba(47,184,166,0.04);}
-  .eq-name{font-family:'JetBrains Mono',monospace;font-weight:600;}
-  .qty-badge{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;}
-  .qty-low{color:var(--danger);}
-  .row-actions{display:flex;gap:6px;}
-  .mini-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--line);background:var(--panel-2);
-    color:var(--ink);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;line-height:1;}
-  .mini-btn.plus{color:var(--plus);border-color:var(--plus);}
-  .mini-btn.minus{color:var(--danger);border-color:var(--danger);}
-  .mini-btn:hover{filter:brightness(1.3);}
-  .tag{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-family:'JetBrains Mono',monospace;
-    background:var(--panel-2);border:1px solid var(--line);color:var(--ink-dim);}
-  .tag.road{color:var(--warn);border-color:var(--warn);}
-  .empty-state{padding:60px 20px;text-align:center;color:var(--ink-dim);}
-  .empty-state .big{font-size:32px;margin-bottom:8px;}
-
-  .overlay{display:none;position:fixed;inset:0;background:rgba(6,10,11,.72);z-index:50;
-    align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto;}
-  .overlay.show{display:flex;}
-  .modal{width:100%;max-width:560px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
-    padding:24px;margin-bottom:40px;}
-  .modal h2{margin:0 0 18px;font-size:18px;}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  .materials-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
-  .quo-item-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
-  .quo-item-row input[data-role=name]{flex:2;}
-  .quo-item-row input[data-role=qty]{flex:1;}
-  .quo-item-row input[data-role=price]{flex:1;}
-  .quo-item-row .quo-line-total{flex:1;font-family:'JetBrains Mono',monospace;font-weight:700;text-align:right;color:var(--accent);white-space:nowrap;}
-  .materials-row select{flex:2;}
-  .materials-row input{flex:1;}
-  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;}
-  .brand-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
-  .brand-chip{padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:var(--panel-2);
-    color:var(--ink-dim);font-size:13px;}
-  .brand-chip.selected{border-color:var(--accent);color:var(--accent);background:rgba(47,184,166,.1);}
-  .add-brand-chip{border-style:dashed;}
-
-  @media print{
-    body *{visibility:hidden;}
-    #print-area, #print-area *{visibility:visible;}
-    #print-area{position:absolute;top:0;left:0;width:100%;padding:20px;display:block !important;}
-  }
-  #print-area{display:none;}
-  .spin{display:inline-block;width:16px;height:16px;border:2px solid var(--ink-dim);border-top-color:var(--accent);
-    border-radius:50%;animation:spin .7s linear infinite;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-</style>
-
-<div id="config-warning">
-  <div class="box">
-    <h2>⚠ সেটআপ বাকি আছে</h2>
-    <p>এই ফাইলের একদম শুরুতে <code>SUPABASE_URL</code> এবং <code>SUPABASE_ANON_KEY</code> এখনো বসানো হয়নি। ফাইলটি এডিটরে (Notepad/TextEdit) খুলে ঐ দুটো লাইনে আপনার Supabase Project URL ও anon key বসিয়ে আবার সেভ করুন, তারপর ফাইলটি আবার খুলুন।</p>
-  </div>
-</div>
-
-<div id="login-screen">
-  <div class="login-card">
-    <div class="login-eyebrow">Secure Access</div>
-    <h1>এডমিন / স্টাফ লগইন</h1>
-    <div class="field">
-      <label>ইমেইল</label>
-      <input type="email" id="email-input" placeholder="you@company.com">
-    </div>
-    <div class="field">
-      <label>পাসওয়ার্ড</label>
-      <input type="password" id="password-input" placeholder="পাসওয়ার্ড">
-    </div>
-    <button class="btn btn-primary" id="login-btn">প্রবেশ করুন</button>
-    <div class="err" id="login-err"></div>
-    <div class="hint">এই ইমেইল/পাসওয়ার্ড Supabase ড্যাশবোর্ডের Authentication → Users থেকে তৈরি করা হয়েছে। নতুন স্টাফকে অ্যাক্সেস দিতে সেখান থেকেই যুক্ত করুন।</div>
-  </div>
-</div>
-
-<div id="app">
-  <header class="topbar">
-    <div class="brand">
-      <img id="logo-img" style="display:none;">
-      <div class="logo-placeholder" id="logo-placeholder">LOGO</div>
-      <div>
-        <div class="brand-name" id="company-name-display">প্রতিষ্ঠানের নাম</div>
-        <div class="brand-sub">CCTV STOCK &amp; MAINTENANCE</div>
-      </div>
-    </div>
-    <div class="topbar-actions">
-      <span class="user-email" id="user-email-display"></span>
-      <button class="icon-btn" id="settings-btn" title="সেটিংস">⚙</button>
-      <button class="icon-btn" id="logout-btn" title="লগআউট">⏻</button>
-    </div>
-  </header>
-
-  <nav class="tabs">
-    <button class="active" data-tab="warehouse">গুদাম মজুদ</button>
-    <button data-tab="purchases">ক্রয় রেকর্ড</button>
-    <button data-tab="maintenance">মেরামত রেকর্ড</button>
-    <button data-tab="quotation">কোটেশন</button>
-  </nav>
-
-  <main>
-    <section id="tab-warehouse">
-      <div class="toolbar">
-        <input type="text" id="eq-search" placeholder="সরঞ্জাম খুঁজুন...">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-dim);"><input type="checkbox" id="eq-instock-only" style="width:16px;height:16px;"> শুধু মজুদ আছে এমন সরঞ্জাম</label>
-        <div class="spacer"></div>
-        <button class="btn" id="view-log-btn">🗂 এন্ট্রি ইতিহাস</button>
-        <button class="btn" id="load-presets-btn">📋 প্রিসেট তালিকা যোগ করুন</button>
-        <button class="btn" id="print-eq-btn">🖨 প্রিন্ট</button>
-        <button class="btn" id="pdf-eq-btn">⬇ PDF ডাউনলোড</button>
-        <button class="btn" id="export-eq-btn">⬇ Excel এক্সপোর্ট</button>
-        <button class="btn btn-primary" id="add-eq-btn">+ নতুন সরঞ্জাম</button>
-      </div>
-      <table>
-        <thead><tr><th>সরঞ্জামের নাম (English)</th><th>ইউনিট</th><th>বর্তমান মজুদ</th><th>সর্বশেষ এন্ট্রি</th><th style="width:190px;">দ্রুত পরিবর্তন</th><th style="width:70px;"></th></tr></thead>
-        <tbody id="eq-tbody"></tbody>
-      </table>
-      <div class="empty-state" id="eq-empty" style="display:none;"><div class="big">📦</div><div>এখনো কোনো সরঞ্জাম যুক্ত করা হয়নি।</div></div>
-    </section>
-
-    <section id="tab-purchases" style="display:none;">
-      <div class="toolbar">
-        <input type="text" id="pur-search" placeholder="সরঞ্জাম/সরবরাহকারী খুঁজুন...">
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-dim);">থেকে <input type="date" id="pur-date-from" style="padding:6px 8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--ink);"></label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-dim);">পর্যন্ত <input type="date" id="pur-date-to" style="padding:6px 8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--ink);"></label>
-        <button class="btn" id="pur-date-clear" style="padding:6px 10px;font-size:12px;">✕ তারিখ মুছুন</button>
-        <button class="btn" id="print-pur-btn">🖨 প্রিন্ট</button>
-        <button class="btn" id="pdf-pur-btn">⬇ PDF ডাউনলোড</button>
-        <button class="btn" id="export-pur-btn">⬇ Excel এক্সপোর্ট</button>
-        <div class="spacer"></div>
-        <button class="btn btn-primary" id="add-purchase-btn">+ নতুন ক্রয়</button>
-      </div>
-      <table>
-        <thead><tr><th>সরঞ্জাম</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>ক্রয়মূল্য (৳)</th><th>মন্তব্য</th><th>ভাউচার</th><th style="width:60px;"></th></tr></thead>
-        <tbody id="pur-tbody"></tbody>
-      </table>
-      <div class="empty-state" id="pur-empty" style="display:none;"><div class="big">🧾</div><div>এখনো কোনো ক্রয় রেকর্ড যুক্ত করা হয়নি। "+ নতুন ক্রয়" চেপে শুরু করুন।</div></div>
-    </section>
-
-    <section id="tab-maintenance" style="display:none;">
-      <div class="toolbar">
-        <select id="filter-road"><option value="">সব রোড</option></select>
-        <select id="filter-brand"><option value="">সব ব্র্যান্ড</option></select>
-        <input type="text" id="filter-camera" placeholder="ক্যামেরা নং দিয়ে খুঁজুন...">
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-dim);">থেকে <input type="date" id="filter-date-from" style="padding:6px 8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--ink);"></label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-dim);">পর্যন্ত <input type="date" id="filter-date-to" style="padding:6px 8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--ink);"></label>
-        <button class="btn" id="filter-date-clear" style="padding:6px 10px;font-size:12px;">✕ তারিখ মুছুন</button>
-        <button class="btn" id="print-btn">🖨 প্রিন্ট</button>
-        <button class="btn" id="pdf-rec-btn">⬇ PDF ডাউনলোড</button>
-        <button class="btn" id="export-rec-btn">⬇ Excel এক্সপোর্ট</button>
-        <button class="btn" id="cost-summary-btn">💰 খরচের সারাংশ</button>
-        <div class="spacer"></div>
-        <button class="btn btn-primary" id="add-record-btn">+ নতুন রেকর্ড</button>
-      </div>
-      <table>
-        <thead><tr><th>রোড</th><th>ক্যামেরা নং</th><th>ব্র্যান্ড</th><th>ক্যামেরার ধরন</th><th>ক্যাবল (মি.)</th><th>এনভিআর</th><th>ব্যবহৃত মালামাল</th><th>মন্তব্য</th><th>খরচ (৳)</th><th style="width:60px;"></th></tr></thead>
-        <tbody id="rec-tbody"></tbody>
-      </table>
-      <div class="empty-state" id="rec-empty" style="display:none;"><div class="big">🎥</div><div>এখনো কোনো মেরামত রেকর্ড যুক্ত করা হয়নি।</div></div>
-    </section>
-
-    <section id="tab-quotation" style="display:none;">
-      <div class="toolbar">
-        <input type="text" id="quo-search" placeholder="ক্লায়েন্ট/কোটেশন নং খুঁজুন...">
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-dim);">থেকে <input type="date" id="quo-date-from" style="padding:6px 8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--ink);"></label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-dim);">পর্যন্ত <input type="date" id="quo-date-to" style="padding:6px 8px;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;color:var(--ink);"></label>
-        <button class="btn" id="quo-date-clear" style="padding:6px 10px;font-size:12px;">✕ তারিখ মুছুন</button>
-        <button class="btn" id="export-quo-btn">⬇ Excel এক্সপোর্ট (সারাংশ)</button>
-        <div class="spacer"></div>
-        <button class="btn btn-primary" id="add-quotation-btn">+ নতুন কোটেশন</button>
-      </div>
-      <p style="font-size:12px;color:var(--ink-dim);margin-top:-6px;">প্রতিটা কোটেশনের নিজস্ব প্রিন্ট/PDF বাটন নিচের তালিকায় "🖨" ও "⬇" চিহ্নে পাবেন।</p>
-      <table>
-        <thead><tr><th>কোটেশন নং</th><th>ক্লায়েন্ট</th><th>তারিখ</th><th>সর্বমোট (৳)</th><th style="width:170px;"></th></tr></thead>
-        <tbody id="quo-tbody"></tbody>
-      </table>
-      <div class="empty-state" id="quo-empty" style="display:none;"><div class="big">📄</div><div>এখনো কোনো কোটেশন তৈরি করা হয়নি। "+ নতুন কোটেশন" চেপে শুরু করুন।</div></div>
-    </section>
-  </main>
-</div>
-
-<div class="overlay" id="settings-overlay">
-  <div class="modal">
-    <h2>সেটিংস</h2>
-    <div class="field"><label>প্রতিষ্ঠানের নাম</label><input type="text" id="set-company-name"></div>
-    <div class="field"><label>ঠিকানা (প্রিন্টে দেখাবে)</label><textarea id="set-address" rows="2" placeholder="যেমন: পার্ক ভিস্তা, বাড়ী নং-২০, রোড নং-০২, হাউজিং সোসাইটি, নাসিরাবাদ, চট্টগ্রাম।"></textarea></div>
-    <div class="field"><label>লোগো (ছবি আপলোড করুন)</label><input type="file" id="set-logo-file" accept="image/*"></div>
-    <div class="field">
-      <label>মূল পেজের থিম (ব্যাকগ্রাউন্ড)</label>
-      <div style="display:flex;gap:10px;">
-        <button type="button" class="btn" id="theme-dark-btn" style="flex:1;">🌑 ডার্ক (কালো)</button>
-        <button type="button" class="btn" id="theme-light-btn" style="flex:1;">☀ লাইট (সাদা)</button>
-      </div>
-    </div>
-    <div class="field">
-      <label>হাইলাইট/বাটনের রঙ</label>
-      <div class="brand-picker" id="color-picker"></div>
-    </div>
-    <div class="field" style="border-top:1px solid var(--line);padding-top:14px;">
-      <label>পাসওয়ার্ড পরিবর্তন করুন (ফাঁকা রাখলে বদলাবে না)</label>
-      <input type="password" id="set-new-password" placeholder="নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)">
-      <div id="password-change-msg" style="font-size:12px;margin-top:6px;"></div>
-    </div>
-    <div class="modal-actions"><button class="btn" id="settings-cancel">বাতিল</button><button class="btn btn-primary" id="settings-save">সংরক্ষণ করুন</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="eq-overlay">
-  <div class="modal">
-    <h2 id="eq-modal-title">নতুন সরঞ্জাম যুক্ত করুন</h2>
-    <div class="field"><label>সরঞ্জামের নাম (তালিকা থেকে বেছে নিন)</label><select id="eq-name-preset"></select></div>
-    <div class="field" id="eq-name-custom-wrap" style="display:none;"><label>নাম লিখুন (English)</label><input type="text" id="eq-name" placeholder="e.g. HDMI Cable"></div>
-    <div class="grid2">
-      <div class="field"><label>ইউনিট</label><select id="eq-unit"><option value="pcs">pcs</option><option value="meter">meter</option><option value="box">box</option><option value="set">set</option></select></div>
-      <div class="field"><label>প্রাথমিক মজুদ</label><input type="number" id="eq-qty" value="0" min="0"></div>
-    </div>
-    <div class="modal-actions"><button class="btn" id="eq-cancel">বাতিল</button><button class="btn btn-primary" id="eq-save">সংরক্ষণ করুন</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="rec-overlay">
-  <div class="modal" style="max-width:640px;">
-    <h2>নতুন মেরামত রেকর্ড</h2>
-    <div class="grid2">
-      <div class="field"><label>রোড নম্বর</label>
-        <select id="rec-road"><option value="1">রোড ১</option><option value="2">রোড ২</option><option value="3">রোড ৩</option><option value="4">রোড ৪</option><option value="5">রোড ৫</option><option value="6">রোড ৬</option></select>
-      </div>
-      <div class="field"><label>ক্যামেরা নম্বর</label><input type="text" id="rec-camera" placeholder="e.g. 4"></div>
-    </div>
-    <div class="field"><label>ক্যামেরার ব্র্যান্ড (কোনো ক্যামেরা না লাগালে খালি রাখুন)</label><div class="brand-picker" id="brand-picker"></div></div>
-    <div class="hint" style="margin-top:-8px;margin-bottom:10px;">ক্যামেরার ধরন ও সংখ্যা এখানে আলাদা করে বলার দরকার নেই — নিচে "ব্যবহৃত মালামাল"-এ যে ক্যামেরা (Dome/Bullet/PTZ/IP/Analog) বেছে যতটা পরিমাণ দেবেন, সেটাই স্বয়ংক্রিয়ভাবে দেখাবে।</div>
-    <div class="grid2">
-      <div class="field"><label>ক্যাবল ব্যবহার (মিটার) — স্বয়ংক্রিয়</label>
-        <div id="rec-cable-auto" class="mono" style="padding:10px 12px;background:var(--panel-2);border:1px solid var(--line);border-radius:8px;color:var(--warn);font-weight:700;">0 মিটার</div>
-      </div>
-      <div class="field"><label>এনভিআর-এ যুক্ত?</label><select id="rec-nvr"><option value="yes">হ্যাঁ, যুক্ত আছে</option><option value="no">না</option></select></div>
-    </div>
-    <div class="field"><label>তারিখ</label><input type="date" id="rec-date"></div>
-    <div class="field">
-      <label>ব্যবহৃত মালামাল (গুদাম থেকে স্বয়ংক্রিয়ভাবে বিয়োগ হবে, ক্যাবল মিটার এখান থেকেই হিসাব হবে)</label>
-      <div id="materials-list"></div>
-      <button class="btn" id="add-material-row" style="margin-top:4px;">+ মালামাল যুক্ত করুন</button>
-    </div>
-    <div class="field"><label>খরচ (৳ টাকা) — ঐচ্ছিক</label><input type="number" id="rec-cost" placeholder="যেমন: 5000" min="0"></div>
-    <div class="field"><label>কাজের বিবরণ / মন্তব্য (কোনো মালামাল না লাগলেও সাধারণ কাজের বিবরণ লিখুন)</label><textarea id="rec-note" rows="2" placeholder="যেমন: শুধু ক্যামেরা পরিষ্কার ও চেক করা হয়েছে, কোনো মালামাল লাগেনি"></textarea></div>
-    <div class="modal-actions"><button class="btn" id="rec-cancel">বাতিল</button><button class="btn btn-primary" id="rec-save">সংরক্ষণ করুন</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="purchase-overlay">
-  <div class="modal">
-    <h2>নতুন ক্রয় যুক্ত করুন</h2>
-    <div class="field">
-      <label>সরঞ্জাম (তালিকা থেকে বেছে নিন)</label>
-      <select id="pur-name-preset"></select>
-    </div>
-    <div class="field" id="pur-name-custom-wrap" style="display:none;">
-      <label>নাম লিখুন (English)</label>
-      <input type="text" id="pur-name" placeholder="e.g. HDMI Cable">
-      <label style="margin-top:8px;">ইউনিট</label>
-      <select id="pur-unit"><option value="pcs">pcs</option><option value="meter">meter</option><option value="box">box</option><option value="set">set</option></select>
-    </div>
-    <div class="grid2">
-      <div class="field"><label>পরিমাণ</label><input type="number" id="pur-qty" min="1" value="1"></div>
-      <div class="field"><label>ক্রয়মূল্য (৳ টাকা)</label><input type="number" id="pur-cost" placeholder="যেমন: 15000" min="0"></div>
-    </div>
-    <div class="grid2">
-      <div class="field"><label>সরবরাহকারী (ঐচ্ছিক)</label><input type="text" id="pur-supplier" placeholder="দোকান/সরবরাহকারীর নাম"></div>
-      <div class="field"><label>তারিখ</label><input type="date" id="pur-date"></div>
-    </div>
-    <div class="field"><label>মন্তব্য</label><textarea id="pur-note" rows="2"></textarea></div>
-    <div class="field">
-      <label>দোকানের ভাউচার / ক্যাশমেমো (ছবি তুলে/আপলোড করুন)</label>
-      <input type="file" id="pur-receipt-file" accept="image/*">
-      <div id="pur-receipt-preview" style="margin-top:8px;"></div>
-    </div>
-    <div class="modal-actions"><button class="btn" id="purchase-cancel">বাতিল</button><button class="btn btn-primary" id="purchase-save">সংরক্ষণ করুন</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="quotation-overlay">
-  <div class="modal" style="max-width:680px;">
-    <h2 id="quo-modal-title">নতুন কোটেশন</h2>
-    <div class="grid2">
-      <div class="field"><label>ক্লায়েন্টের নাম</label><input type="text" id="quo-client" placeholder="ক্লায়েন্টের নাম"></div>
-      <div class="field"><label>ঠিকানা/যোগাযোগ (ঐচ্ছিক)</label><input type="text" id="quo-contact" placeholder="ঠিকানা বা ফোন নম্বর"></div>
-    </div>
-    <div class="field"><label>তারিখ</label><input type="date" id="quo-date"></div>
-    <div class="field">
-      <label>আইটেম তালিকা</label>
-      <div id="quo-items-list"></div>
-      <button class="btn" id="add-quo-item-row" style="margin-top:4px;">+ আইটেম যুক্ত করুন</button>
-    </div>
-    <div style="text-align:right;font-weight:700;font-size:16px;margin:10px 0;">সর্বমোট: <span id="quo-grand-total" class="mono">৳ 0</span></div>
-    <div class="field"><label>শর্তাবলী / মন্তব্য (ঐচ্ছিক)</label><textarea id="quo-note" rows="3" placeholder="যেমন: মূল্য ৭ দিনের জন্য কার্যকর, ইনস্টলেশন খরচ অন্তর্ভুক্ত।"></textarea></div>
-    <div class="modal-actions"><button class="btn" id="quotation-cancel">বাতিল</button><button class="btn btn-primary" id="quotation-save">সংরক্ষণ করুন</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="log-overlay">
-  <div class="modal" style="max-width:640px;">
-    <h2>গুদাম এন্ট্রির ইতিহাস (তারিখ অনুযায়ী)</h2>
-    <div class="grid2" style="margin-bottom:10px;">
-      <div class="field"><label>থেকে</label><input type="date" id="log-date-from"></div>
-      <div class="field"><label>পর্যন্ত</label><input type="date" id="log-date-to"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:10px;">
-      <button class="btn" id="print-log-btn">🖨 প্রিন্ট</button>
-      <button class="btn" id="pdf-log-btn">⬇ PDF ডাউনলোড</button>
-      <button class="btn" id="export-log-btn">⬇ Excel এক্সপোর্ট</button>
-    </div>
-    <div id="log-content" style="max-height:60vh;overflow-y:auto;"></div>
-    <div class="modal-actions"><button class="btn" id="log-close">বন্ধ করুন</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="cost-overlay">
-  <div class="modal" style="max-width:460px;">
-    <h2>💰 খরচের সারাংশ</h2>
-    <div id="cost-content"></div>
-    <div style="border-top:1px dashed var(--line);margin-top:14px;padding-top:14px;">
-      <label style="display:block;font-size:13px;color:var(--ink-dim);margin-bottom:6px;">নিজের পছন্দের তারিখ পরিসীমা দিয়ে হিসাব করুন</label>
-      <div class="grid2">
-        <div class="field" style="margin-bottom:8px;"><label>শুরুর তারিখ</label><input type="date" id="cost-range-from"></div>
-        <div class="field" style="margin-bottom:8px;"><label>শেষ তারিখ</label><input type="date" id="cost-range-to"></div>
-      </div>
-      <button class="btn btn-primary" id="cost-range-calc" style="width:100%;">হিসাব করুন</button>
-      <div id="cost-range-result" style="margin-top:10px;"></div>
-    </div>
-    <div class="modal-actions"><button class="btn" id="cost-close">বন্ধ করুন</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="receipt-view-overlay">
-  <div class="modal" style="max-width:520px;text-align:center;">
-    <h2>ভাউচার / ক্যাশমেমো</h2>
-    <img id="receipt-view-img" style="max-width:100%;border-radius:8px;border:1px solid var(--line);">
-    <div class="modal-actions"><button class="btn" id="receipt-view-close">বন্ধ করুন</button></div>
-  </div>
-</div>
-
-<div id="print-area"></div>
-
-<script>
-(function(){
-  if(window.SUPABASE_URL === 'YOUR_SUPABASE_URL_HERE' || !window.SUPABASE_URL){
-    document.getElementById('config-warning').style.display = 'flex';
-    return;
-  }
-  const sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-
-  let state = { settings:{company_name:'', address:'', logo_base64:null, accent_color:'#2fb8a6', theme:'dark'}, equipment:[], brands:[], records:[], stockLog:[], purchases:[], quotations:[] };
-  let editingEqId = null;
-  let selectedBrand = '';
-
-  function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-  function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-
-  // ---------- AUTH ----------
-  const loginScreen = document.getElementById('login-screen');
-  const appEl = document.getElementById('app');
-  const loginErr = document.getElementById('login-err');
-
-  document.getElementById('login-btn').addEventListener('click', async ()=>{
-    loginErr.textContent = '';
-    const email = document.getElementById('email-input').value.trim();
-    const password = document.getElementById('password-input').value;
-    if(!email || !password){ loginErr.textContent = 'ইমেইল ও পাসওয়ার্ড দিন।'; return; }
-    const { data, error } = await sb.auth.signInWithPassword({ email, password });
-    if(error){ loginErr.textContent = 'ভুল ইমেইল/পাসওয়ার্ড, অথবা এই ইউজার Supabase-এ তৈরি হয়নি।'; return; }
-    await enterApp(data.user);
-  });
-  document.getElementById('password-input').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('login-btn').click(); });
-
-  document.getElementById('logout-btn').addEventListener('click', async ()=>{
-    await sb.auth.signOut();
-    appEl.style.display = 'none';
-    loginScreen.style.display = 'flex';
-  });
-
-  async function enterApp(user){
-    loginScreen.style.display = 'none';
-    appEl.style.display = 'flex';
-    document.getElementById('user-email-display').textContent = user.email;
-    await loadAll();
-    refreshHeader();
-    renderEquipment();
-    renderPurchases();
-    renderRecords();
-    renderQuotations();
-    renderBrandPicker();
-    populateBrandFilter();
-  }
-
-  // check existing session on load (so refresh doesn't log out)
-  (async function checkSession(){
-    const { data } = await sb.auth.getSession();
-    if(data && data.session && data.session.user){ await enterApp(data.session.user); }
-  })();
-
-  // ---------- DATA LOAD ----------
-  async function loadAll(){
-    const [eqRes, brandRes, recRes, setRes, logRes, purRes, quoRes] = await Promise.all([
-      sb.from('equipment').select('*').order('name'),
-      sb.from('brands').select('*').order('name'),
-      sb.from('records').select('*').order('record_date', {ascending:false}),
-      sb.from('settings').select('*').eq('id',1).single(),
-      sb.from('stock_log').select('*').order('log_date', {ascending:false}).order('created_at', {ascending:false}),
-      sb.from('purchases').select('*').order('purchase_date', {ascending:false}),
-      sb.from('quotations').select('*').order('quote_date', {ascending:false})
-    ]);
-    state.equipment = eqRes.data || [];
-    state.brands = (brandRes.data || []).map(b=>b.name);
-    state.records = (recRes.data || []).map(r=>({
-      id:r.id, road:r.road, camera:r.camera, brand:r.brand, camera_type:r.camera_type, cable:r.cable,
-      nvr:r.nvr, date:r.record_date, note:r.note, cost:r.cost||0, materials:r.materials||[]
-    }));
-    state.settings = setRes.data || {company_name:'', address:'', logo_base64:null, accent_color:'#2fb8a6', theme:'dark'};
-    state.stockLog = logRes.data || [];
-    state.purchases = (purRes.data || []).map(p=>({id:p.id, name:p.name, unit:p.unit, qty:p.qty, cost:p.cost||0, supplier:p.supplier, note:p.note, date:p.purchase_date, receipt_image:p.receipt_image}));
-    state.quotations = (quoRes.data || []).map(q=>({id:q.id, quote_number:q.quote_number, client:q.client_name, contact:q.client_contact, date:q.quote_date, items:q.items||[], subtotal:q.subtotal||0, note:q.note}));
-    applyAccentColor(state.settings.accent_color || '#2fb8a6');
-    applyTheme(state.settings.theme || 'dark');
-  }
-
-  function applyAccentColor(color){
-    document.documentElement.style.setProperty('--accent', color);
-    document.documentElement.style.setProperty('--accent-dim', color);
-  }
-  function applyTheme(theme){
-    document.body.classList.toggle('theme-light', theme === 'light');
-  }
-
-  async function logStockChange(name, changeQty, reason, date, cost){
-    if(!changeQty) return;
-    const row = { equipment_name:name, change_qty:changeQty, reason, log_date: date || todayStr(), cost: cost||0 };
-    await sb.from('stock_log').insert(row);
-    state.stockLog.unshift({...row, id: 'tmp'+Date.now(), created_at:new Date().toISOString()});
-  }
-
-  // ---------- HEADER / SETTINGS ----------
-  function refreshHeader(){
-    document.getElementById('company-name-display').textContent = state.settings.company_name || 'প্রতিষ্ঠানের নাম';
-    const img = document.getElementById('logo-img'), ph = document.getElementById('logo-placeholder');
-    if(state.settings.logo_base64){ img.src = state.settings.logo_base64; img.style.display='block'; ph.style.display='none'; }
-    else { img.style.display='none'; ph.style.display='flex'; }
-  }
-  const THEME_COLORS = ['#2fb8a6','#3b82f6','#a855f7','#f97316','#ef4444','#22c55e','#eab308'];
-  let selectedAccent = '#2fb8a6';
-  let selectedTheme = 'dark';
-  function renderColorPicker(){
-    const wrap = document.getElementById('color-picker');
-    wrap.innerHTML = '';
-    THEME_COLORS.forEach(c=>{
-      const chip = document.createElement('div');
-      chip.style.cssText = `width:32px;height:32px;border-radius:8px;background:${c};cursor:pointer;border:3px solid ${c===selectedAccent?'#fff':'transparent'};`;
-      chip.addEventListener('click', ()=>{ selectedAccent = c; renderColorPicker(); });
-      wrap.appendChild(chip);
-    });
-  }
-  function refreshThemeButtons(){
-    document.getElementById('theme-dark-btn').style.borderColor = selectedTheme==='dark' ? 'var(--accent)' : 'var(--line)';
-    document.getElementById('theme-light-btn').style.borderColor = selectedTheme==='light' ? 'var(--accent)' : 'var(--line)';
-  }
-  document.getElementById('theme-dark-btn').addEventListener('click', ()=>{ selectedTheme='dark'; refreshThemeButtons(); applyTheme('dark'); });
-  document.getElementById('theme-light-btn').addEventListener('click', ()=>{ selectedTheme='light'; refreshThemeButtons(); applyTheme('light'); });
-  const settingsOverlay = document.getElementById('settings-overlay');
-  document.getElementById('settings-btn').addEventListener('click', ()=>{
-    document.getElementById('set-company-name').value = state.settings.company_name || '';
-    document.getElementById('set-address').value = state.settings.address || '';
-    document.getElementById('set-new-password').value = '';
-    document.getElementById('password-change-msg').textContent = '';
-    selectedAccent = state.settings.accent_color || '#2fb8a6';
-    selectedTheme = state.settings.theme || 'dark';
-    renderColorPicker();
-    refreshThemeButtons();
-    settingsOverlay.classList.add('show');
-  });
-  document.getElementById('settings-cancel').addEventListener('click', ()=>{
-    applyTheme(state.settings.theme || 'dark'); // পরিবর্তন বাতিল হলে আগের থিমে ফিরে যাবে
-    settingsOverlay.classList.remove('show');
-  });
-  document.getElementById('set-logo-file').addEventListener('change', (e)=>{
-    const f = e.target.files[0]; if(!f) return;
-    const reader = new FileReader();
-    reader.onload = ()=>{ state._pendingLogo = reader.result; };
-    reader.readAsDataURL(f);
-  });
-  document.getElementById('settings-save').addEventListener('click', async ()=>{
-    const company_name = document.getElementById('set-company-name').value.trim() || state.settings.company_name;
-    const address = document.getElementById('set-address').value.trim();
-    const logo_base64 = state._pendingLogo || state.settings.logo_base64;
-    const accent_color = selectedAccent;
-    const theme = selectedTheme;
-    await sb.from('settings').upsert({ id:1, company_name, address, logo_base64, accent_color, theme });
-    state.settings = { company_name, address, logo_base64, accent_color, theme };
-    state._pendingLogo = null;
-    refreshHeader();
-    applyAccentColor(accent_color);
-    applyTheme(theme);
-
-    const newPw = document.getElementById('set-new-password').value.trim();
-    const msgEl = document.getElementById('password-change-msg');
-    if(newPw){
-      if(newPw.length < 6){
-        msgEl.style.color = 'var(--danger)';
-        msgEl.textContent = 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে — বাকি তথ্য সংরক্ষিত হয়েছে, পাসওয়ার্ড বদলায়নি।';
-        return;
-      }
-      const { error } = await sb.auth.updateUser({ password: newPw });
-      if(error){
-        msgEl.style.color = 'var(--danger)';
-        msgEl.textContent = 'পাসওয়ার্ড পরিবর্তন ব্যর্থ হয়েছে: ' + error.message;
-        return;
-      }
-    }
-    settingsOverlay.classList.remove('show');
-  });
-
-  // ---------- ENTRY HISTORY LOG ----------
-  const logOverlay = document.getElementById('log-overlay');
-  function filteredStockLog(){
-    const dFrom = document.getElementById('log-date-from').value;
-    const dTo = document.getElementById('log-date-to').value;
-    return state.stockLog.filter(l =>
-      (!dFrom || (l.log_date && l.log_date >= dFrom)) &&
-      (!dTo || (l.log_date && l.log_date <= dTo))
-    );
-  }
-  function groupLogByDate(list){
-    const groups = [];
-    list.forEach(l=>{
-      let g = groups.find(g=>g.date===l.log_date);
-      if(!g){ g = {date:l.log_date, items:[]}; groups.push(g); }
-      g.items.push(l);
-    });
-    return groups;
-  }
-  function renderLogContent(){
-    const groups = groupLogByDate(filteredStockLog());
-    const content = document.getElementById('log-content');
-    if(!groups.length){
-      content.innerHTML = '<p style="color:var(--ink-dim);">এই পরিসীমায় কোনো এন্ট্রির ইতিহাস নেই।</p>';
-    } else {
-      content.innerHTML = groups.map(g=>`
-        <div style="margin-bottom:14px;">
-          <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--warn);margin-bottom:6px;">📅 ${g.date}</div>
-          ${g.items.map(l=>`
-            <div style="display:flex;justify-content:space-between;padding:6px 10px;border-bottom:1px solid var(--line);font-size:13px;">
-              <span>${escapeHtml(l.equipment_name)}</span>
-              <span class="mono" style="color:${l.change_qty>0?'var(--plus)':'var(--danger)'};">${l.change_qty>0?'+':''}${l.change_qty}</span>
-              <span style="color:var(--ink-dim);">${escapeHtml(l.reason||'')}</span>
-            </div>`).join('')}
-        </div>`).join('');
-    }
-  }
-  document.getElementById('view-log-btn').addEventListener('click', ()=>{
-    document.getElementById('log-date-from').value = '';
-    document.getElementById('log-date-to').value = '';
-    renderLogContent();
-    logOverlay.classList.add('show');
-  });
-  document.getElementById('log-date-from').addEventListener('change', renderLogContent);
-  document.getElementById('log-date-to').addEventListener('change', renderLogContent);
-  document.getElementById('log-close').addEventListener('click', ()=> logOverlay.classList.remove('show'));
-
-  function buildLogPrintArea(){
-    const groups = groupLogByDate(filteredStockLog());
-    if(!groups.length){ alert('প্রিন্ট করার মতো কোনো এন্ট্রির ইতিহাস পাওয়া যায়নি।'); return false; }
-    const dFrom = document.getElementById('log-date-from').value;
-    const dTo = document.getElementById('log-date-to').value;
-    const area = document.getElementById('print-area');
-    area.innerHTML = `
-      ${buildLetterhead('গুদাম এন্ট্রির ইতিহাস')}
-      ${(dFrom || dTo) ? `<p style="font-family:sans-serif;color:#555;text-align:center;">${dFrom ? 'থেকে: '+dFrom : ''} ${dTo ? '| পর্যন্ত: '+dTo : ''}</p>` : ''}
-      ${groups.map(g=>`
-        <h3 style="font-family:sans-serif;background:#eee;padding:6px 10px;margin:14px 0 4px;">তারিখ: ${g.date}</h3>
-        <table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px;margin-bottom:8px;">
-          <thead><tr style="background:#f5f5f5;">
-            <th style="border:1px solid #999;padding:6px;">সরঞ্জাম</th><th style="border:1px solid #999;padding:6px;">পরিবর্তন</th>
-            <th style="border:1px solid #999;padding:6px;">কারণ</th></tr></thead>
-          <tbody>${g.items.map(l=>`
-            <tr><td style="border:1px solid #999;padding:6px;">${escapeHtml(l.equipment_name)}</td>
-            <td style="border:1px solid #999;padding:6px;">${l.change_qty>0?'+':''}${l.change_qty}</td>
-            <td style="border:1px solid #999;padding:6px;">${escapeHtml(l.reason||'')}</td></tr>`).join('')}
-          </tbody>
-        </table>`).join('')}`;
-    return true;
-  }
-  document.getElementById('print-log-btn').addEventListener('click', ()=>{
-    if(buildLogPrintArea()) window.print();
-  });
-  document.getElementById('pdf-log-btn').addEventListener('click', async ()=>{
-    if(buildLogPrintArea()) await downloadAsPDF('warehouse-entry-history-'+todayStr());
-  });
-  document.getElementById('export-log-btn').addEventListener('click', ()=>{
-    const list = filteredStockLog();
-    if(!list.length){ alert('এক্সপোর্ট করার মতো কোনো এন্ট্রির ইতিহাস পাওয়া যায়নি।'); return; }
-    const rows = list.map(l=>({'তারিখ (Date)':l.log_date,'সরঞ্জাম (Item)':l.equipment_name,'পরিবর্তন (Change)':l.change_qty,'কারণ (Reason)':l.reason||''}));
-    const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Entry History');
-    downloadWorkbook(wb, 'warehouse-entry-history-'+todayStr()+'.xlsx');
-  });
-
-  // ---------- TABS ----------
-  document.querySelectorAll('nav.tabs button').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const t = btn.dataset.tab;
-      document.getElementById('tab-warehouse').style.display = t==='warehouse' ? 'block':'none';
-      document.getElementById('tab-purchases').style.display = t==='purchases' ? 'block':'none';
-      document.getElementById('tab-maintenance').style.display = t==='maintenance' ? 'block':'none';
-      document.getElementById('tab-quotation').style.display = t==='quotation' ? 'block':'none';
-    });
-  });
-
-  // ---------- WAREHOUSE ----------
-  const eqOverlay = document.getElementById('eq-overlay');
-  const eqTbody = document.getElementById('eq-tbody');
-  const eqSearch = document.getElementById('eq-search');
-
-  function todayStr(){ return new Date().toISOString().slice(0,10); }
-
-  function buildLetterhead(reportTitle){
-    const logoHtml = state.settings.logo_base64 ? `<img src="${state.settings.logo_base64}" style="height:80px;width:80px;object-fit:contain;">` : '';
-    const addressHtml = state.settings.address ? `<div style="font-family:sans-serif;font-size:13px;color:#333;margin-top:2px;">${escapeHtml(state.settings.address)}</div>` : '';
-    return `
-      <div style="display:flex;align-items:center;gap:18px;border-bottom:2px solid #000;padding-bottom:10px;margin-bottom:16px;">
-        ${logoHtml}
-        <div>
-          <h2 style="font-family:sans-serif;margin:0;font-size:24px;">${escapeHtml(state.settings.company_name||'')}</h2>
-          ${addressHtml}
+    <!-- Top Navigation Bar -->
+    <header class="bg-blue-700 text-white shadow-md no-print">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                📹 CCTV কন্ট্রোল ও কোটেশন প্যানেল
+            </h1>
+            <div class="text-sm bg-blue-800 px-3 py-1 rounded">
+                আপনার প্রতিষ্ঠান: <span class="font-bold text-yellow-300">ডিজিটাল সিকিউরিটি সリューションস</span>
+            </div>
         </div>
-      </div>
-      <div style="text-align:center;margin-bottom:12px;">
-        <h3 style="font-family:sans-serif;display:inline-block;border-bottom:2px solid #000;padding-bottom:3px;margin:0;font-size:18px;">${reportTitle}</h3>
-      </div>
-      <div style="font-family:sans-serif;margin-bottom:10px;">প্রিন্টের তারিখ: ${todayStr()}</div>
-    `;
-  }
+    </header>
 
-  async function downloadAsPDF(filename){
-    const area = document.getElementById('print-area');
-    const prevDisplay = area.style.display;
-    area.style.display = 'block'; // অস্থায়ীভাবে দেখানো হচ্ছে যাতে html2canvas ছবি তুলতে পারে
-    try{
-      const canvas = await html2canvas(area, {scale:2, backgroundColor:'#ffffff'});
-      const imgData = canvas.toDataURL('image/png');
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF('p','mm','a4');
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = pageWidth;
-      const imgHeight = canvas.height * imgWidth / canvas.width;
-      let heightLeft = imgHeight;
-      let position = 0;
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-      while(heightLeft > 0){
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
-      pdf.save(filename + '.pdf');
-    } catch(e){
-      alert('PDF তৈরি করা যায়নি। ইন্টারনেট সংযোগ পরীক্ষা করুন, অথবা "প্রিন্ট" বাটন দিয়ে "Save as PDF" বেছে ব্যবহার করুন।');
-    } finally {
-      area.style.display = prevDisplay;
-    }
-  }
-
-  const PRESET_EQUIPMENT = [
-    {name:'Dome Camera', unit:'pcs'}, {name:'Bullet Camera', unit:'pcs'}, {name:'PTZ Camera', unit:'pcs'},
-    {name:'IP Camera', unit:'pcs'}, {name:'Analog Camera (AHD/CVI/TVI)', unit:'pcs'},
-    {name:'NVR (Network Video Recorder)', unit:'pcs'}, {name:'DVR (Digital Video Recorder)', unit:'pcs'},
-    {name:'Hard Disk (HDD)', unit:'pcs'}, {name:'PoE Switch', unit:'pcs'}, {name:'Network Switch', unit:'pcs'},
-    {name:'Network Router', unit:'pcs'}, {name:'CAT6 Cable', unit:'meter'}, {name:'Coaxial Cable (RG59)', unit:'meter'},
-    {name:'Power Cable', unit:'meter'}, {name:'HDMI Cable', unit:'pcs'}, {name:'VGA Cable', unit:'pcs'},
-    {name:'BNC Connector', unit:'pcs'}, {name:'RJ45 Connector', unit:'pcs'}, {name:'DC Power Connector', unit:'pcs'},
-    {name:'Power Adapter (12V)', unit:'pcs'}, {name:'Power Supply Box (Multi-channel)', unit:'pcs'},
-    {name:'UPS (Uninterruptible Power Supply)', unit:'pcs'}, {name:'Camera Junction Box', unit:'pcs'},
-    {name:'Camera Mounting Bracket', unit:'pcs'}, {name:'Camera Housing / Cover', unit:'pcs'},
-    {name:'Monitor / Display', unit:'pcs'}, {name:'Video Balun', unit:'pcs'},
-    {name:'Surge Protector / Lightning Arrester', unit:'pcs'}, {name:'Cable Conduit / Pipe', unit:'meter'},
-    {name:'Cable Clip', unit:'box'}, {name:'Cable Tie', unit:'box'}, {name:'Screws & Anchors', unit:'box'},
-    {name:'Extension Board', unit:'pcs'},
-  ];
-  const eqNamePreset = document.getElementById('eq-name-preset');
-  const eqNameCustomWrap = document.getElementById('eq-name-custom-wrap');
-
-  // সব জায়গায় (গুদাম/ক্রয়/কোটেশন) একই একক তালিকা ব্যবহারের জন্য — যা গুদামে ইতিমধ্যে আছে
-  // + প্রিসেট তালিকা, নাম অনুযায়ী ডুপ্লিকেট বাদ দিয়ে (case-insensitive)
-  function getUnifiedEquipmentOptions(){
-    const seen = new Set();
-    const list = [];
-    state.equipment.forEach(e=>{
-      const key = e.name.toLowerCase();
-      if(!seen.has(key)){ seen.add(key); list.push({name:e.name, unit:e.unit}); }
-    });
-    PRESET_EQUIPMENT.forEach(p=>{
-      const key = p.name.toLowerCase();
-      if(!seen.has(key)){ seen.add(key); list.push({name:p.name, unit:p.unit}); }
-    });
-    return list;
-  }
-
-  function populateEqPreset(){
-    eqNamePreset.innerHTML = getUnifiedEquipmentOptions().map(p=>`<option value="${escapeHtml(p.name)}" data-unit="${p.unit}">${escapeHtml(p.name)}</option>`).join('')
-      + `<option value="__custom__">— নিজে লিখুন / Custom —</option>`;
-  }
-  eqNamePreset.addEventListener('change', ()=>{
-    if(eqNamePreset.value === '__custom__'){
-      eqNameCustomWrap.style.display = 'block';
-      document.getElementById('eq-name').value = '';
-    } else {
-      eqNameCustomWrap.style.display = 'none';
-      const opt = eqNamePreset.selectedOptions[0];
-      if(opt) document.getElementById('eq-unit').value = opt.dataset.unit || 'pcs';
-    }
-  });
-
-  function renderEquipment(){
-    const q = (eqSearch.value||'').toLowerCase();
-    const inStockOnly = document.getElementById('eq-instock-only').checked;
-    const list = state.equipment.filter(e=> e.name.toLowerCase().includes(q) && (!inStockOnly || e.qty>0));
-    eqTbody.innerHTML = '';
-    document.getElementById('eq-empty').style.display = state.equipment.length? 'none':'block';
-    list.forEach(e=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="eq-name">${escapeHtml(e.name)}</td>
-        <td>${e.unit}</td>
-        <td><span class="qty-badge ${e.qty<=2?'qty-low':''}">${e.qty}</span></td>
-        <td class="mono">${e.last_entry_date || '-'}</td>
-        <td><div class="row-actions">
-          <button class="mini-btn minus" data-id="${e.id}" data-op="minus">−</button>
-          <button class="mini-btn plus" data-id="${e.id}" data-op="plus">+</button>
-        </div></td>
-        <td><button class="icon-btn" style="width:28px;height:28px;font-size:13px;" data-edit="${e.id}">✎</button></td>`;
-      eqTbody.appendChild(tr);
-    });
-    eqTbody.querySelectorAll('[data-op]').forEach(b=>{
-      b.addEventListener('click', async ()=>{
-        const eq = state.equipment.find(x=>x.id===b.dataset.id);
-        const delta = b.dataset.op==='plus' ? 1 : -Math.min(1, eq.qty);
-        eq.qty = b.dataset.op==='plus' ? eq.qty+1 : Math.max(0, eq.qty-1);
-        eq.last_entry_date = todayStr();
-        await sb.from('equipment').update({qty:eq.qty, last_entry_date:eq.last_entry_date}).eq('id', eq.id);
-        if(delta!==0) await logStockChange(eq.name, delta, 'দ্রুত পরিবর্তন (+/-)', eq.last_entry_date);
-        renderEquipment();
-      });
-    });
-    eqTbody.querySelectorAll('[data-edit]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        editingEqId = b.dataset.edit;
-        const eq = state.equipment.find(x=>x.id===editingEqId);
-        document.getElementById('eq-modal-title').textContent = 'সরঞ্জাম সম্পাদনা করুন';
-        populateEqPreset();
-        const matches = PRESET_EQUIPMENT.some(p=>p.name===eq.name);
-        if(matches){ eqNamePreset.value = eq.name; eqNameCustomWrap.style.display = 'none'; }
-        else { eqNamePreset.value = '__custom__'; eqNameCustomWrap.style.display = 'block'; }
-        document.getElementById('eq-name').value = eq.name;
-        document.getElementById('eq-unit').value = eq.unit;
-        document.getElementById('eq-qty').value = eq.qty;
-        eqOverlay.classList.add('show');
-      });
-    });
-  }
-  eqSearch.addEventListener('input', renderEquipment);
-  document.getElementById('eq-instock-only').addEventListener('change', renderEquipment);
-  document.getElementById('add-eq-btn').addEventListener('click', ()=>{
-    editingEqId = null;
-    document.getElementById('eq-modal-title').textContent = 'নতুন সরঞ্জাম যুক্ত করুন';
-    populateEqPreset();
-    eqNamePreset.value = PRESET_EQUIPMENT[0].name;
-    eqNameCustomWrap.style.display = 'none';
-    document.getElementById('eq-name').value=''; document.getElementById('eq-unit').value=PRESET_EQUIPMENT[0].unit; document.getElementById('eq-qty').value=0;
-    eqOverlay.classList.add('show');
-  });
-  document.getElementById('eq-cancel').addEventListener('click', ()=> eqOverlay.classList.remove('show'));
-  document.getElementById('eq-save').addEventListener('click', async ()=>{
-    const name = (eqNamePreset.value === '__custom__') ? document.getElementById('eq-name').value.trim() : eqNamePreset.value;
-    if(!name) return;
-    const unit = document.getElementById('eq-unit').value;
-    const qty = parseInt(document.getElementById('eq-qty').value)||0;
-    const last_entry_date = todayStr();
-
-    if(!editingEqId){
-      const dup = state.equipment.find(x=>x.name.toLowerCase()===name.toLowerCase());
-      if(dup){
-        const addQty = confirm(`"${dup.name}" নামে সরঞ্জাম ইতিমধ্যে গুদামে আছে (বর্তমান মজুদ: ${dup.qty})। নতুন করে না বানিয়ে এর সাথে ${qty} যোগ করা হবে। ঠিক আছে?`);
-        if(!addQty){ return; }
-        dup.qty += qty;
-        dup.last_entry_date = last_entry_date;
-        await sb.from('equipment').update({qty:dup.qty, last_entry_date}).eq('id', dup.id);
-        if(qty!==0) await logStockChange(dup.name, qty, 'বিদ্যমান সরঞ্জামে মজুদ যোগ করা হয়েছে', last_entry_date);
-        const { data } = await sb.from('equipment').select('*').order('name');
-        state.equipment = data || [];
-        renderEquipment(); renderMaterialSelects();
-        eqOverlay.classList.remove('show');
-        return;
-      }
-    }
-
-    const prevQty = editingEqId ? (state.equipment.find(x=>x.id===editingEqId)?.qty || 0) : 0;
-    if(editingEqId){
-      await sb.from('equipment').update({name,unit,qty,last_entry_date}).eq('id', editingEqId);
-    } else {
-      await sb.from('equipment').insert({name,unit,qty,last_entry_date});
-    }
-    const diff = qty - prevQty;
-    if(diff!==0) await logStockChange(name, diff, editingEqId ? 'এডিট করে পরিমাণ পরিবর্তন' : 'নতুন সরঞ্জাম যুক্ত করা হয়েছে', last_entry_date);
-    const { data } = await sb.from('equipment').select('*').order('name');
-    state.equipment = data || [];
-    renderEquipment(); renderMaterialSelects();
-    eqOverlay.classList.remove('show');
-  });
-
-
-  document.getElementById('load-presets-btn').addEventListener('click', async ()=>{
-    const btn = document.getElementById('load-presets-btn');
-    btn.disabled = true;
-    // ডুপ্লিকেট এড়াতে সর্বশেষ তালিকা সরাসরি ডাটাবেস থেকে আবার আনা হচ্ছে
-    const { data: fresh } = await sb.from('equipment').select('*');
-    state.equipment = fresh || [];
-    const existingNames = new Set(state.equipment.map(e=>e.name.toLowerCase()));
-    const toAdd = PRESET_EQUIPMENT.filter(p=>!existingNames.has(p.name.toLowerCase())).map(p=>({name:p.name, unit:p.unit, qty:0}));
-    if(!toAdd.length){
-      alert('সব প্রিসেট সরঞ্জাম ইতিমধ্যে গুদামে যুক্ত আছে।');
-      btn.disabled = false;
-      return;
-    }
-    await sb.from('equipment').insert(toAdd);
-    const { data } = await sb.from('equipment').select('*').order('name');
-    state.equipment = data || [];
-    renderEquipment(); renderMaterialSelects();
-    alert(toAdd.length + 'টি নতুন সরঞ্জাম যুক্ত হয়েছে (মজুদ ০ দিয়ে) — সংখ্যা বসিয়ে দিন।');
-    btn.disabled = false;
-  });
-
-  function buildWarehousePrintArea(){
-    const inStock = state.equipment.filter(e=> e.qty > 0);
-    if(!inStock.length){ alert('বর্তমানে গুদামে মজুদ আছে এমন কোনো সরঞ্জাম নেই।'); return false; }
-    const area = document.getElementById('print-area');
-    area.innerHTML = `
-      ${buildLetterhead('গুদাম রিপোর্ট')}
-      <p style="font-family:sans-serif;color:#555;">শুধু বর্তমানে মজুদ আছে এমন সরঞ্জাম দেখানো হয়েছে</p>
-      <table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px;">
-        <thead><tr style="background:#eee;">
-          <th style="border:1px solid #999;padding:6px;">সরঞ্জামের নাম</th><th style="border:1px solid #999;padding:6px;">ইউনিট</th>
-          <th style="border:1px solid #999;padding:6px;">মজুদ</th><th style="border:1px solid #999;padding:6px;">সর্বশেষ এন্ট্রি</th>
-        </tr></thead>
-        <tbody>${inStock.map(e=>`
-          <tr><td style="border:1px solid #999;padding:6px;">${escapeHtml(e.name)}</td>
-          <td style="border:1px solid #999;padding:6px;">${e.unit}</td>
-          <td style="border:1px solid #999;padding:6px;">${e.qty}</td>
-          <td style="border:1px solid #999;padding:6px;">${e.last_entry_date||'-'}</td></tr>`).join('')}
-        </tbody>
-      </table>`;
-    return true;
-  }
-  document.getElementById('print-eq-btn').addEventListener('click', ()=>{
-    if(buildWarehousePrintArea()) window.print();
-  });
-  document.getElementById('pdf-eq-btn').addEventListener('click', async ()=>{
-    if(buildWarehousePrintArea()) await downloadAsPDF('warehouse-report-'+todayStr());
-  });
-
-  // ---------- PURCHASE RECORDS ----------
-  const purchaseOverlay = document.getElementById('purchase-overlay');
-  const purTbody = document.getElementById('pur-tbody');
-  const purSearch = document.getElementById('pur-search');
-  const purNamePreset = document.getElementById('pur-name-preset');
-  const purNameCustomWrap = document.getElementById('pur-name-custom-wrap');
-
-  function populatePurPreset(){
-    const existingOptions = state.equipment.map(e=>`<option value="${e.id}" data-existing="1">${escapeHtml(e.name)} (মজুদ: ${e.qty} ${e.unit})</option>`).join('');
-    const existingNames = new Set(state.equipment.map(e=>e.name.toLowerCase()));
-    const presetOptions = PRESET_EQUIPMENT.filter(p=>!existingNames.has(p.name.toLowerCase()))
-      .map(p=>`<option value="preset::${escapeHtml(p.name)}::${p.unit}">${escapeHtml(p.name)} (নতুন সরঞ্জাম)</option>`).join('');
-    purNamePreset.innerHTML = existingOptions + presetOptions + `<option value="__custom__">— নিজে লিখুন / Custom —</option>`;
-  }
-  purNamePreset.addEventListener('change', ()=>{
-    purNameCustomWrap.style.display = (purNamePreset.value === '__custom__') ? 'block' : 'none';
-  });
-
-  function filteredPurchases(){
-    const q = (purSearch.value||'').toLowerCase();
-    const dFrom = document.getElementById('pur-date-from').value;
-    const dTo = document.getElementById('pur-date-to').value;
-    return state.purchases.filter(p =>
-      (p.name.toLowerCase().includes(q) || (p.supplier||'').toLowerCase().includes(q)) &&
-      (!dFrom || (p.date && p.date >= dFrom)) &&
-      (!dTo || (p.date && p.date <= dTo))
-    );
-  }
-  document.getElementById('pur-date-from').addEventListener('change', renderPurchases);
-  document.getElementById('pur-date-to').addEventListener('change', renderPurchases);
-  document.getElementById('pur-date-clear').addEventListener('click', ()=>{
-    document.getElementById('pur-date-from').value = '';
-    document.getElementById('pur-date-to').value = '';
-    renderPurchases();
-  });
-
-  function renderPurchases(){
-    const list = filteredPurchases();
-    purTbody.innerHTML = '';
-    document.getElementById('pur-empty').style.display = state.purchases.length? 'none':'block';
-    const groups = groupByDate(list);
-    groups.forEach(g=>{
-      const headerTr = document.createElement('tr');
-      headerTr.innerHTML = `<td colspan="7" style="background:var(--panel-2);font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--warn);">📅 ${g.date||'তারিখ নেই'}</td>`;
-      purTbody.appendChild(headerTr);
-      g.items.forEach(p=>{
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="eq-name">${escapeHtml(p.name)}</td>
-          <td class="mono">${p.qty} ${escapeHtml(p.unit||'')}</td>
-          <td>${escapeHtml(p.supplier||'-')}</td>
-          <td class="mono">${p.cost ? p.cost.toLocaleString('en-US') : '-'}</td>
-          <td style="font-size:12px;">${escapeHtml(p.note)||'-'}</td>
-          <td>${p.receipt_image ? `<button class="btn" style="padding:4px 10px;font-size:12px;" data-viewreceipt="${p.id}">👁 দেখুন</button>` : '-'}</td>
-          <td><button class="icon-btn" style="width:28px;height:28px;font-size:13px;" data-delpur="${p.id}">🗑</button></td>`;
-        purTbody.appendChild(tr);
-      });
-    });
-    purTbody.querySelectorAll('[data-viewreceipt]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        const p = state.purchases.find(x=>x.id===b.dataset.viewreceipt);
-        if(p && p.receipt_image){
-          document.getElementById('receipt-view-img').src = p.receipt_image;
-          document.getElementById('receipt-view-overlay').classList.add('show');
-        }
-      });
-    });
-    purTbody.querySelectorAll('[data-delpur]').forEach(b=>{
-      b.addEventListener('click', async ()=>{
-        if(!confirm('এই ক্রয় রেকর্ডটি মুছে ফেলতে চান? (গুদামের মজুদ থেকে এটা স্বয়ংক্রিয়ভাবে বিয়োগ হবে না, শুধু রেকর্ড মুছে যাবে)')) return;
-        await sb.from('purchases').delete().eq('id', b.dataset.delpur);
-        state.purchases = state.purchases.filter(p=>p.id!==b.dataset.delpur);
-        renderPurchases();
-      });
-    });
-  }
-  purSearch.addEventListener('input', renderPurchases);
-
-  document.getElementById('receipt-view-close').addEventListener('click', ()=> document.getElementById('receipt-view-overlay').classList.remove('show'));
-
-  document.getElementById('pur-receipt-file').addEventListener('change', (e)=>{
-    const f = e.target.files[0]; if(!f) return;
-    const reader = new FileReader();
-    reader.onload = ()=>{
-      state._pendingReceipt = reader.result;
-      document.getElementById('pur-receipt-preview').innerHTML = `<img src="${reader.result}" style="max-width:100%;max-height:150px;border-radius:6px;border:1px solid var(--line);">`;
-    };
-    reader.readAsDataURL(f);
-  });
-
-  document.getElementById('add-purchase-btn').addEventListener('click', ()=>{
-    populatePurPreset();
-    purNameCustomWrap.style.display = 'none';
-    document.getElementById('pur-name').value = '';
-    document.getElementById('pur-unit').value = 'pcs';
-    document.getElementById('pur-qty').value = 1;
-    document.getElementById('pur-cost').value = '';
-    document.getElementById('pur-supplier').value = '';
-    document.getElementById('pur-note').value = '';
-    document.getElementById('pur-date').value = todayStr();
-    document.getElementById('pur-receipt-file').value = '';
-    document.getElementById('pur-receipt-preview').innerHTML = '';
-    state._pendingReceipt = null;
-    purchaseOverlay.classList.add('show');
-  });
-  document.getElementById('purchase-cancel').addEventListener('click', ()=> purchaseOverlay.classList.remove('show'));
-
-  let isSavingPurchase = false;
-  document.getElementById('purchase-save').addEventListener('click', async ()=>{
-    if(isSavingPurchase) return;
-    const qty = parseInt(document.getElementById('pur-qty').value) || 0;
-    if(qty <= 0){ alert('সঠিক পরিমাণ দিন।'); return; }
-    const cost = parseFloat(document.getElementById('pur-cost').value) || 0;
-    const supplier = document.getElementById('pur-supplier').value.trim();
-    const note = document.getElementById('pur-note').value.trim();
-    const date = document.getElementById('pur-date').value || todayStr();
-    isSavingPurchase = true;
-    const saveBtn = document.getElementById('purchase-save');
-    saveBtn.disabled = true; saveBtn.textContent = 'সংরক্ষণ হচ্ছে...';
-    try{
-      let equipId, equipName, equipUnit;
-      if(purNamePreset.value === '__custom__'){
-        equipName = document.getElementById('pur-name').value.trim();
-        equipUnit = document.getElementById('pur-unit').value;
-        if(!equipName){ alert('সরঞ্জামের নাম দিন।'); return; }
-        const dup = state.equipment.find(x=>x.name.toLowerCase()===equipName.toLowerCase());
-        if(dup){
-          equipId = dup.id; equipUnit = dup.unit;
-          dup.qty += qty; dup.last_entry_date = date;
-          const { error: upErr } = await sb.from('equipment').update({qty:dup.qty, last_entry_date:date}).eq('id', dup.id);
-          if(upErr) throw upErr;
-        } else {
-          const { data: inserted, error: insErr } = await sb.from('equipment').insert({name:equipName, unit:equipUnit, qty, last_entry_date:date}).select().single();
-          if(insErr) throw insErr;
-          equipId = inserted ? inserted.id : null;
-        }
-      } else if(purNamePreset.value.startsWith('preset::')){
-        const parts = purNamePreset.value.split('::');
-        equipName = parts[1]; equipUnit = parts[2];
-        const { data: inserted, error: insErr } = await sb.from('equipment').insert({name:equipName, unit:equipUnit, qty, last_entry_date:date}).select().single();
-        if(insErr) throw insErr;
-        equipId = inserted ? inserted.id : null;
-      } else {
-        equipId = purNamePreset.value;
-        const eq = state.equipment.find(x=>x.id===equipId);
-        if(!eq){ alert('সরঞ্জাম খুঁজে পাওয়া যায়নি।'); return; }
-        equipName = eq.name; equipUnit = eq.unit;
-        eq.qty += qty; eq.last_entry_date = date;
-        const { error: upErr } = await sb.from('equipment').update({qty:eq.qty, last_entry_date:date}).eq('id', eq.id);
-        if(upErr) throw upErr;
-      }
-      await logStockChange(equipName, qty, `ক্রয়${supplier ? ' — সরবরাহকারী: '+supplier : ''}`, date, cost);
-      const { error: purErr } = await sb.from('purchases').insert({ name:equipName, unit:equipUnit, qty, cost, supplier, note, purchase_date:date, receipt_image: state._pendingReceipt || null });
-      if(purErr) throw purErr;
-
-      const [{data: eqData}, {data: purData}] = await Promise.all([
-        sb.from('equipment').select('*').order('name'),
-        sb.from('purchases').select('*').order('purchase_date', {ascending:false})
-      ]);
-      state.equipment = eqData || [];
-      state.purchases = (purData||[]).map(p=>({id:p.id, name:p.name, unit:p.unit, qty:p.qty, cost:p.cost||0, supplier:p.supplier, note:p.note, date:p.purchase_date, receipt_image:p.receipt_image}));
-      state._pendingReceipt = null;
-      renderEquipment(); renderPurchases(); renderMaterialSelects();
-      purchaseOverlay.classList.remove('show');
-    } catch(err){
-      alert('ক্রয় রেকর্ড সংরক্ষণ করা যায়নি। কারণ: ' + (err.message || 'অজানা সমস্যা') + '\n\nসম্ভবত "purchases" টেবিলটা এখনো Supabase-এ তৈরি হয়নি — supabase-update-8.sql কোডটা রান করা হয়েছে কিনা যাচাই করুন।');
-    } finally {
-      isSavingPurchase = false;
-      saveBtn.disabled = false; saveBtn.textContent = 'সংরক্ষণ করুন';
-    }
-  });
-
-  function buildPurchasePrintArea(){
-    const list = filteredPurchases();
-    if(!list.length){ alert('প্রিন্ট করার মতো কোনো ক্রয় রেকর্ড পাওয়া যায়নি।'); return false; }
-    const groups = groupByDate(list);
-    const area = document.getElementById('print-area');
-    area.innerHTML = `
-      ${buildLetterhead('ক্রয় রেকর্ড রিপোর্ট')}
-      ${groups.map(g=>`
-        <h3 style="font-family:sans-serif;background:#eee;padding:6px 10px;margin:14px 0 4px;">তারিখ: ${g.date||'তারিখ নেই'}</h3>
-        <table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px;margin-bottom:8px;">
-          <thead><tr style="background:#f5f5f5;">
-            <th style="border:1px solid #999;padding:6px;">সরঞ্জাম</th><th style="border:1px solid #999;padding:6px;">পরিমাণ</th>
-            <th style="border:1px solid #999;padding:6px;">সরবরাহকারী</th><th style="border:1px solid #999;padding:6px;">ক্রয়মূল্য (৳)</th>
-            <th style="border:1px solid #999;padding:6px;">মন্তব্য</th><th style="border:1px solid #999;padding:6px;">ভাউচার</th></tr></thead>
-          <tbody>${g.items.map(p=>`
-            <tr><td style="border:1px solid #999;padding:6px;">${escapeHtml(p.name)}</td>
-            <td style="border:1px solid #999;padding:6px;">${p.qty} ${escapeHtml(p.unit||'')}</td>
-            <td style="border:1px solid #999;padding:6px;">${escapeHtml(p.supplier||'-')}</td>
-            <td style="border:1px solid #999;padding:6px;">${p.cost ? p.cost.toLocaleString('en-US') : '-'}</td>
-            <td style="border:1px solid #999;padding:6px;">${escapeHtml(p.note)||'-'}</td>
-            <td style="border:1px solid #999;padding:6px;">${p.receipt_image ? `<img src="${p.receipt_image}" style="height:60px;">` : '-'}</td></tr>`).join('')}
-          </tbody>
-        </table>`).join('')}`;
-    return true;
-  }
-  document.getElementById('print-pur-btn').addEventListener('click', ()=>{
-    if(buildPurchasePrintArea()) window.print();
-  });
-  document.getElementById('pdf-pur-btn').addEventListener('click', async ()=>{
-    if(buildPurchasePrintArea()) await downloadAsPDF('purchase-report-'+todayStr());
-  });
-  document.getElementById('export-pur-btn').addEventListener('click', ()=>{
-    const list = filteredPurchases();
-    const rows = list.map(p=>({'তারিখ (Date)':p.date||'','সরঞ্জাম (Item)':p.name,'পরিমাণ (Qty)':p.qty,'ইউনিট (Unit)':p.unit,'সরবরাহকারী (Supplier)':p.supplier||'','ক্রয়মূল্য Taka (Cost)':p.cost||0,'মন্তব্য (Note)':p.note||''}));
-    const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Purchase Records');
-    downloadWorkbook(wb, 'purchase-records-'+todayStr()+'.xlsx');
-  });
-
-  // ---------- MAINTENANCE ----------
-  const recOverlay = document.getElementById('rec-overlay');
-  const recTbody = document.getElementById('rec-tbody');
-  const filterRoad = document.getElementById('filter-road');
-  const filterBrand = document.getElementById('filter-brand');
-  const filterCamera = document.getElementById('filter-camera');
-  const brandPicker = document.getElementById('brand-picker');
-  const materialsList = document.getElementById('materials-list');
-  const recCableAuto = document.getElementById('rec-cable-auto');
-
-  function renderBrandPicker(){
-    brandPicker.innerHTML = '';
-    const naChip = document.createElement('div');
-    naChip.className = 'brand-chip' + (!selectedBrand ? ' selected' : '');
-    naChip.textContent = 'কোনো ক্যামেরা লাগেনি';
-    naChip.addEventListener('click', ()=>{ selectedBrand=''; renderBrandPicker(); });
-    brandPicker.appendChild(naChip);
-    state.brands.forEach(b=>{
-      const chip = document.createElement('div');
-      chip.className = 'brand-chip' + (b===selectedBrand?' selected':'');
-      chip.textContent = b;
-      chip.addEventListener('click', ()=>{ selectedBrand=b; renderBrandPicker(); });
-      brandPicker.appendChild(chip);
-    });
-    const addChip = document.createElement('div');
-    addChip.className = 'brand-chip add-brand-chip';
-    addChip.textContent = '+ নতুন ব্র্যান্ড';
-    addChip.addEventListener('click', async ()=>{
-      const name = prompt('নতুন ব্র্যান্ডের নাম লিখুন (English):');
-      if(name && name.trim()){
-        await sb.from('brands').insert({name:name.trim()});
-        const { data } = await sb.from('brands').select('*').order('name');
-        state.brands = (data||[]).map(b=>b.name);
-        selectedBrand = name.trim();
-        renderBrandPicker();
-        populateBrandFilter();
-      }
-    });
-    brandPicker.appendChild(addChip);
-  }
-
-  function populateBrandFilter(){
-    const cur = filterBrand.value;
-    filterBrand.innerHTML = '<option value="">সব ব্র্যান্ড</option>' + state.brands.map(b=>`<option value="${escapeHtml(b)}">${escapeHtml(b)}</option>`).join('');
-    filterBrand.value = cur;
-  }
-
-  function recalcCableAuto(){
-    let total = 0;
-    materialsList.querySelectorAll('.materials-row').forEach(row=>{
-      const sel = row.querySelector('select'), inp = row.querySelector('input');
-      const eq = state.equipment.find(x=>x.id===sel.value);
-      const qty = parseFloat(inp.value)||0;
-      if(eq && eq.unit==='meter') total += qty;
-    });
-    recCableAuto.textContent = total + ' মিটার';
-    return total;
-  }
-
-  function addMaterialRow(){
-    const row = document.createElement('div');
-    row.className = 'materials-row';
-    const sel = document.createElement('select');
-    sel.innerHTML = '<option value="">সরঞ্জাম নির্বাচন করুন</option>' + state.equipment.map(e=>`<option value="${e.id}">${escapeHtml(e.name)} (মজুদ: ${e.qty} ${e.unit})</option>`).join('');
-    const qty = document.createElement('input');
-    qty.type='number'; qty.min='0'; qty.placeholder='পরিমাণ';
-    const rm = document.createElement('button');
-    rm.className='mini-btn minus'; rm.textContent='×';
-    rm.addEventListener('click', ()=>{ row.remove(); recalcCableAuto(); });
-    sel.addEventListener('change', recalcCableAuto);
-    qty.addEventListener('input', recalcCableAuto);
-    row.appendChild(sel); row.appendChild(qty); row.appendChild(rm);
-    materialsList.appendChild(row);
-  }
-  function renderMaterialSelects(){
-    materialsList.querySelectorAll('select').forEach(sel=>{
-      const cur = sel.value;
-      sel.innerHTML = '<option value="">সরঞ্জাম নির্বাচন করুন</option>' + state.equipment.map(e=>`<option value="${e.id}">${escapeHtml(e.name)} (মজুদ: ${e.qty} ${e.unit})</option>`).join('');
-      sel.value = cur;
-    });
-  }
-  document.getElementById('add-material-row').addEventListener('click', ()=> addMaterialRow());
-
-  document.getElementById('add-record-btn').addEventListener('click', ()=>{
-    document.getElementById('rec-road').value='1';
-    document.getElementById('rec-camera').value='';
-    document.getElementById('rec-nvr').value='yes';
-    document.getElementById('rec-note').value='';
-    document.getElementById('rec-cost').value='';
-    document.getElementById('rec-date').value = new Date().toISOString().slice(0,10);
-    materialsList.innerHTML='';
-    recCableAuto.textContent = '0 মিটার';
-    selectedBrand = '';
-    renderBrandPicker();
-    recOverlay.classList.add('show');
-  });
-  document.getElementById('rec-cancel').addEventListener('click', ()=> recOverlay.classList.remove('show'));
-
-  let isSavingRecord = false;
-  document.getElementById('rec-save').addEventListener('click', async ()=>{
-    if(isSavingRecord) return; // ডাবল-ক্লিকে দুইবার রেকর্ড তৈরি হওয়া আটকাতে
-    const camera = document.getElementById('rec-camera').value.trim();
-    if(!camera){ alert('ক্যামেরা নম্বর দিন।'); return; }
-    isSavingRecord = true;
-    const saveBtn = document.getElementById('rec-save');
-    saveBtn.disabled = true; saveBtn.textContent = 'সংরক্ষণ হচ্ছে...';
-    try{
-      const materials = [];
-      materialsList.querySelectorAll('.materials-row').forEach(row=>{
-        const sel = row.querySelector('select'), inp = row.querySelector('input');
-        const equipId = sel.value, qty = parseInt(inp.value)||0;
-        if(equipId && qty>0){
-          const eq = state.equipment.find(x=>x.id===equipId);
-          materials.push({equipId, name: eq?eq.name:'', qty});
-        }
-      });
-      const cableTotal = recalcCableAuto();
-      const recDate = document.getElementById('rec-date').value;
-      const roadVal = document.getElementById('rec-road').value;
-      // মালামাল থেকে ক্যামেরা-জাতীয় আইটেম শনাক্ত করে "IP Camera x2" এর মতো লেখা তৈরি করা হচ্ছে
-      const CAMERA_TYPE_NAMES = ['Dome Camera','Bullet Camera','PTZ Camera','IP Camera','Analog Camera (AHD/CVI/TVI)'];
-      const camTallies = {};
-      materials.forEach(m=>{ if(CAMERA_TYPE_NAMES.includes(m.name)){ camTallies[m.name] = (camTallies[m.name]||0) + m.qty; } });
-      const camtype = Object.keys(camTallies).map(name=> `${name} x${camTallies[name]}`).join(', ');
-      const brandValue = camtype ? selectedBrand : (selectedBrand || ''); // ক্যামেরা না লাগালেও ব্র্যান্ড ঐচ্ছিকভাবে রাখা যাবে
-      for(const m of materials){
-        const eq = state.equipment.find(x=>x.id===m.equipId);
-        if(eq){
-          eq.qty = Math.max(0, eq.qty - m.qty);
-          eq.last_entry_date = todayStr();
-          await sb.from('equipment').update({qty:eq.qty, last_entry_date:eq.last_entry_date}).eq('id', eq.id);
-          await logStockChange(eq.name, -m.qty, `মেরামত রেকর্ড — রোড ${roadVal}, ক্যামেরা ${camera}`, recDate || todayStr());
-        }
-      }
-      const record = {
-        road: roadVal,
-        camera,
-        brand: brandValue || null,
-        camera_type: camtype || null,
-        cable: cableTotal,
-        nvr: document.getElementById('rec-nvr').value,
-        record_date: recDate,
-        note: document.getElementById('rec-note').value.trim(),
-        cost: parseFloat(document.getElementById('rec-cost').value) || 0,
-        materials
-      };
-      await sb.from('records').insert(record);
-      const { data } = await sb.from('records').select('*').order('record_date', {ascending:false});
-      state.records = (data||[]).map(r=>({id:r.id, road:r.road, camera:r.camera, brand:r.brand, camera_type:r.camera_type, cable:r.cable, nvr:r.nvr, date:r.record_date, note:r.note, cost:r.cost||0, materials:r.materials||[]}));
-      renderRecords(); renderEquipment();
-      recOverlay.classList.remove('show');
-    } finally {
-      isSavingRecord = false;
-      saveBtn.disabled = false; saveBtn.textContent = 'সংরক্ষণ করুন';
-    }
-  });
-
-  function groupByDate(list){
-    const sorted = [...list].sort((a,b)=> (b.date||'').localeCompare(a.date||''));
-    const groups = [];
-    sorted.forEach(r=>{
-      let g = groups.find(g=>g.date===r.date);
-      if(!g){ g = {date:r.date, items:[]}; groups.push(g); }
-      g.items.push(r);
-    });
-    return groups;
-  }
-
-  function filteredRecords(){
-    const road = filterRoad.value;
-    const brand = filterBrand.value;
-    const cam = (filterCamera.value||'').toLowerCase().trim();
-    const dFrom = document.getElementById('filter-date-from').value;
-    const dTo = document.getElementById('filter-date-to').value;
-    return state.records.filter(r=>
-      (!road || r.road===road) &&
-      (!brand || r.brand===brand) &&
-      (!cam || r.camera.toLowerCase().includes(cam)) &&
-      (!dFrom || (r.date && r.date >= dFrom)) &&
-      (!dTo || (r.date && r.date <= dTo))
-    );
-  }
-
-  document.getElementById('filter-date-from').addEventListener('change', renderRecords);
-  document.getElementById('filter-date-to').addEventListener('change', renderRecords);
-  document.getElementById('filter-date-clear').addEventListener('click', ()=>{
-    document.getElementById('filter-date-from').value = '';
-    document.getElementById('filter-date-to').value = '';
-    renderRecords();
-  });
-
-  function renderRecords(){
-    const list = filteredRecords();
-    recTbody.innerHTML = '';
-    document.getElementById('rec-empty').style.display = state.records.length? 'none':'block';
-    const groups = groupByDate(list);
-    groups.forEach(g=>{
-      const headerTr = document.createElement('tr');
-      headerTr.innerHTML = `<td colspan="10" style="background:var(--panel-2);font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--warn);">📅 ${g.date||'তারিখ নেই'}</td>`;
-      recTbody.appendChild(headerTr);
-      g.items.forEach(r=>{
-        const tr = document.createElement('tr');
-        const materialsDisplay = (r.materials && r.materials.length) ? r.materials.map(m=>escapeHtml(m.name)+' x'+m.qty).join(', ') : '-';
-        tr.innerHTML = `
-          <td><span class="tag road">রোড ${r.road}</span></td>
-          <td class="mono">${escapeHtml(r.camera)}</td>
-          <td>${escapeHtml(r.brand||'-')}</td>
-          <td>${escapeHtml(r.camera_type||'-')}</td>
-          <td class="mono">${r.cable} মি.</td>
-          <td>${r.nvr==='yes'?'হ্যাঁ':'না'}</td>
-          <td style="font-size:12px;">${materialsDisplay}</td>
-          <td style="font-size:12px;max-width:180px;">${escapeHtml(r.note)||'-'}</td>
-          <td class="mono">${r.cost ? r.cost.toLocaleString('en-US') : '-'}</td>
-          <td><button class="icon-btn" style="width:28px;height:28px;font-size:13px;" data-del="${r.id}">🗑</button></td>`;
-        recTbody.appendChild(tr);
-      });
-    });
-    recTbody.querySelectorAll('[data-del]').forEach(b=>{
-      b.addEventListener('click', async ()=>{
-        if(!confirm('এই রেকর্ডটি মুছে ফেলতে চান?')) return;
-        await sb.from('records').delete().eq('id', b.dataset.del);
-        state.records = state.records.filter(r=>r.id!==b.dataset.del);
-        renderRecords();
-      });
-    });
-  }
-  filterRoad.addEventListener('change', renderRecords);
-  filterBrand.addEventListener('change', renderRecords);
-  filterCamera.addEventListener('input', renderRecords);
-
-  // ---------- PRINT ----------
-  function buildMaintenancePrintArea(){
-    const list = filteredRecords();
-    if(!list.length){ alert('প্রিন্ট করার মতো কোনো রেকর্ড পাওয়া যায়নি।'); return false; }
-    const groups = groupByDate(list);
-    const area = document.getElementById('print-area');
-    area.innerHTML = `
-      ${buildLetterhead('মেরামত রেকর্ড রিপোর্ট')}
-      ${(filterCamera.value || filterRoad.value || filterBrand.value) ? `<p style="font-family:sans-serif;color:#555;text-align:center;margin:0 0 8px;">${filterCamera.value ? 'ক্যামেরা নং: '+escapeHtml(filterCamera.value) : ''} ${filterRoad.value ? ' | রোড '+filterRoad.value : ''} ${filterBrand.value ? ' | ব্র্যান্ড: '+escapeHtml(filterBrand.value) : ''}</p>` : ''}
-      ${groups.map(g=>{
-        return `
-        <h3 style="font-family:sans-serif;background:#eee;padding:6px 10px;margin:14px 0 4px;">তারিখ: ${g.date||'তারিখ নেই'}</h3>
-        <table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px;margin-bottom:8px;">
-          <thead><tr style="background:#f5f5f5;">
-            <th style="border:1px solid #999;padding:6px;">রোড</th><th style="border:1px solid #999;padding:6px;">ক্যামেরা</th>
-            <th style="border:1px solid #999;padding:6px;">ব্র্যান্ড</th><th style="border:1px solid #999;padding:6px;">ক্যামেরার ধরন</th>
-            <th style="border:1px solid #999;padding:6px;">ক্যাবল (মি.)</th>
-            <th style="border:1px solid #999;padding:6px;">এনভিআর</th><th style="border:1px solid #999;padding:6px;">ব্যবহৃত মালামাল</th>
-            <th style="border:1px solid #999;padding:6px;">মন্তব্য</th><th style="border:1px solid #999;padding:6px;">খরচ (৳)</th></tr></thead>
-          <tbody>${g.items.map(r=>`
-            <tr><td style="border:1px solid #999;padding:6px;">রোড ${r.road}</td>
-            <td style="border:1px solid #999;padding:6px;">${escapeHtml(r.camera)}</td>
-            <td style="border:1px solid #999;padding:6px;">${escapeHtml(r.brand||'-')}</td>
-            <td style="border:1px solid #999;padding:6px;">${escapeHtml(r.camera_type||'-')}</td>
-            <td style="border:1px solid #999;padding:6px;">${r.cable}</td>
-            <td style="border:1px solid #999;padding:6px;">${r.nvr==='yes'?'হ্যাঁ':'না'}</td>
-            <td style="border:1px solid #999;padding:6px;">${r.materials.map(m=>escapeHtml(m.name)+' x'+m.qty).join(', ')||'-'}</td>
-            <td style="border:1px solid #999;padding:6px;">${escapeHtml(r.note)||'-'}</td>
-            <td style="border:1px solid #999;padding:6px;">${r.cost ? r.cost.toLocaleString('en-US') : '-'}</td></tr>`).join('')}
-          </tbody>
-        </table>`;
-      }).join('')}`;
-    return true;
-  }
-  document.getElementById('print-btn').addEventListener('click', ()=>{
-    if(buildMaintenancePrintArea()) window.print();
-  });
-  document.getElementById('pdf-rec-btn').addEventListener('click', async ()=>{
-    if(buildMaintenancePrintArea()) await downloadAsPDF('maintenance-report-'+todayStr());
-  });
-
-  // ---------- EXCEL EXPORT ----------
-  function downloadWorkbook(wb, filename){
-    const wbout = XLSX.write(wb, {bookType:'xlsx', type:'array'});
-    const blob = new Blob([wbout], {type:'application/octet-stream'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-  document.getElementById('export-eq-btn').addEventListener('click', ()=>{
-    const rows = state.equipment.map(e=>({'সরঞ্জামের নাম (Name)':e.name,'ইউনিট (Unit)':e.unit,'বর্তমান মজুদ (Stock)':e.qty,'সর্বশেষ এন্ট্রি (Last Entry)':e.last_entry_date||''}));
-    const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Warehouse Stock');
-    downloadWorkbook(wb, 'warehouse-stock-'+new Date().toISOString().slice(0,10)+'.xlsx');
-  });
-  document.getElementById('export-rec-btn').addEventListener('click', ()=>{
-    const list = filteredRecords();
-    const rows = list.map(r=>({'তারিখ (Date)':r.date||'','রোড (Road)':r.road,'ক্যামেরা নং (Camera No)':r.camera,'ব্র্যান্ড (Brand)':r.brand||'','ক্যামেরার ধরন (Camera Type)':r.camera_type||'',
-      'ক্যাবল মিটার (Cable m)':r.cable,'এনভিআর (NVR)':r.nvr==='yes'?'হ্যাঁ':'না',
-      'ব্যবহৃত মালামাল (Materials Used)':r.materials.map(m=>m.name+' x'+m.qty).join(', '),'মন্তব্য (Note)':r.note||'','খরচ Taka (Cost)':r.cost||0}));
-    const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Maintenance Records');
-    downloadWorkbook(wb, 'maintenance-records-'+new Date().toISOString().slice(0,10)+'.xlsx');
-  });
-
-  // ---------- COST SUMMARY ----------
-  const costOverlay = document.getElementById('cost-overlay');
-  document.getElementById('cost-summary-btn').addEventListener('click', ()=>{
-    const today = todayStr();
-    const now = new Date();
-    const startOfWeek = new Date(now); startOfWeek.setDate(now.getDate() - now.getDay()); const weekStr = startOfWeek.toISOString().slice(0,10);
-    const monthStr = today.slice(0,7); // YYYY-MM
-    const yearStr = today.slice(0,4); // YYYY
-
-    function tally(items, dateField, costField){
-      let sumToday=0, sumWeek=0, sumMonth=0, sumYear=0, sumAll=0;
-      items.forEach(it=>{
-        const c = it[costField]||0; const d = it[dateField];
-        if(!c) return;
-        sumAll += c;
-        if(d === today) sumToday += c;
-        if(d && d >= weekStr) sumWeek += c;
-        if(d && d.slice(0,7) === monthStr) sumMonth += c;
-        if(d && d.slice(0,4) === yearStr) sumYear += c;
-      });
-      return {sumToday, sumWeek, sumMonth, sumYear, sumAll};
-    }
-
-    const maint = tally(state.records, 'date', 'cost');
-    // stock_log-এ শুধু মজুদ যোগ করার (change_qty > 0) এন্ট্রিগুলোই "ক্রয়" হিসেবে ধরা হচ্ছে
-    const purchase = tally(state.purchases, 'date', 'cost');
-
-    const fmt = n => '৳ ' + n.toLocaleString('en-US');
-    function row(label, m, p, isTotal){
-      const total = m + p;
-      return `<div style="display:flex;justify-content:space-between;padding:10px 0;${isTotal?'':'border-bottom:1px solid var(--line);'}">
-        <span>${label}</span>
-        <span class="mono" style="font-weight:700;${isTotal?'color:var(--accent);':''}">${fmt(total)}</span>
-      </div>`;
-    }
-    document.getElementById('cost-content').innerHTML = `
-      ${row('আজ', maint.sumToday, purchase.sumToday)}
-      ${row('এই সপ্তাহ', maint.sumWeek, purchase.sumWeek)}
-      ${row('এই মাস', maint.sumMonth, purchase.sumMonth)}
-      ${row('এই বছর', maint.sumYear, purchase.sumYear)}
-      ${row('সর্বমোট (সব সময়)', maint.sumAll, purchase.sumAll, true)}
-      <div style="margin-top:14px;padding-top:10px;border-top:1px dashed var(--line);font-size:12px;color:var(--ink-dim);">
-        <div style="display:flex;justify-content:space-between;"><span>— শুধু মেরামত খরচ (সর্বমোট)</span><span class="mono">${fmt(maint.sumAll)}</span></div>
-        <div style="display:flex;justify-content:space-between;"><span>— শুধু সরঞ্জাম ক্রয় খরচ (সর্বমোট)</span><span class="mono">${fmt(purchase.sumAll)}</span></div>
-      </div>
-      <p style="font-size:12px;color:var(--ink-dim);margin-top:10px;">উপরের সংখ্যাগুলো মেরামত রেকর্ডের "খরচ" এবং গুদামে সরঞ্জাম যোগ করার সময় দেওয়া "ক্রয়মূল্য" — দুটো একসাথে যোগ করা।</p>
-    `;
-    document.getElementById('cost-range-from').value = '';
-    document.getElementById('cost-range-to').value = '';
-    document.getElementById('cost-range-result').innerHTML = '';
-    costOverlay.classList.add('show');
-  });
-  document.getElementById('cost-close').addEventListener('click', ()=> costOverlay.classList.remove('show'));
-
-  document.getElementById('cost-range-calc').addEventListener('click', ()=>{
-    const from = document.getElementById('cost-range-from').value;
-    const to = document.getElementById('cost-range-to').value;
-    if(!from || !to){ alert('শুরুর ও শেষ তারিখ দুটোই দিন।'); return; }
-    if(from > to){ alert('শুরুর তারিখ শেষ তারিখের আগে হতে হবে।'); return; }
-    function sumInRange(items, dateField, costField){
-      return items.reduce((s,it)=>{
-        const d = it[dateField]; const c = it[costField]||0;
-        if(d && d >= from && d <= to) return s + c;
-        return s;
-      }, 0);
-    }
-    const maintSum = sumInRange(state.records, 'date', 'cost');
-    const purchaseSum = sumInRange(state.purchases, 'date', 'cost');
-    const total = maintSum + purchaseSum;
-    const fmt = n => '৳ ' + n.toLocaleString('en-US');
-    document.getElementById('cost-range-result').innerHTML = `
-      <div style="background:var(--panel-2);border-radius:8px;padding:10px;">
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-dim);"><span>মেরামত খরচ</span><span class="mono">${fmt(maintSum)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ink-dim);"><span>সরঞ্জাম ক্রয় খরচ</span><span class="mono">${fmt(purchaseSum)}</span></div>
-        <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);"><span>${from} থেকে ${to} পর্যন্ত সর্বমোট</span><span class="mono" style="color:var(--accent);">${fmt(total)}</span></div>
-      </div>
-    `;
-  });
-
-  // ---------- QUOTATION ----------
-  const quotationOverlay = document.getElementById('quotation-overlay');
-  const quoTbody = document.getElementById('quo-tbody');
-  const quoSearch = document.getElementById('quo-search');
-  const quoItemsList = document.getElementById('quo-items-list');
-  let editingQuoId = null;
-
-  function recalcQuoTotal(){
-    let total = 0;
-    quoItemsList.querySelectorAll('.quo-item-row').forEach(row=>{
-      const qty = parseFloat(row.querySelector('[data-role=qty]').value) || 0;
-      const price = parseFloat(row.querySelector('[data-role=price]').value) || 0;
-      const lineTotal = qty * price;
-      row.querySelector('.quo-line-total').textContent = '৳ ' + lineTotal.toLocaleString('en-US');
-      total += lineTotal;
-    });
-    document.getElementById('quo-grand-total').textContent = '৳ ' + total.toLocaleString('en-US');
-    return total;
-  }
-  function addQuoItemRow(item){
-    const row = document.createElement('div');
-    row.className = 'quo-item-row';
-    const options = getUnifiedEquipmentOptions();
-    const matched = item ? options.some(o=>o.name.toLowerCase()===item.name.toLowerCase()) : false;
-    const optionsHtml = options.map(o=>`<option value="${escapeHtml(o.name)}">${escapeHtml(o.name)}</option>`).join('')
-      + `<option value="__custom__">— নিজে লিখুন / Custom —</option>`;
-    row.innerHTML = `
-      <select data-role="name-select" style="flex:2;">${optionsHtml}</select>
-      <input type="text" data-role="name-custom" placeholder="আইটেমের নাম লিখুন" style="flex:2;display:none;">
-      <input type="number" data-role="qty" placeholder="পরিমাণ" min="0" value="${item ? item.qty : 1}">
-      <input type="number" data-role="price" placeholder="একক মূল্য (৳)" min="0" value="${item ? item.price : ''}">
-      <span class="quo-line-total mono">৳ 0</span>
-      <button class="mini-btn minus" type="button">×</button>
-    `;
-    const selectEl = row.querySelector('[data-role=name-select]');
-    const customEl = row.querySelector('[data-role=name-custom]');
-    if(item && matched){ selectEl.value = item.name; }
-    else if(item && !matched){ selectEl.value = '__custom__'; customEl.style.display='block'; customEl.value = item.name; }
-    selectEl.addEventListener('change', ()=>{
-      if(selectEl.value === '__custom__'){ customEl.style.display = 'block'; customEl.value=''; }
-      else { customEl.style.display = 'none'; }
-    });
-    row.querySelector('.mini-btn').addEventListener('click', ()=>{ row.remove(); recalcQuoTotal(); });
-    row.querySelectorAll('input[data-role=qty], input[data-role=price]').forEach(inp=> inp.addEventListener('input', recalcQuoTotal));
-    quoItemsList.appendChild(row);
-    recalcQuoTotal();
-  }
-  document.getElementById('add-quo-item-row').addEventListener('click', ()=> addQuoItemRow());
-
-  function nextQuoteNumber(){
-    const n = state.quotations.length + 1;
-    return 'QT-' + String(n).padStart(4, '0');
-  }
-
-  document.getElementById('add-quotation-btn').addEventListener('click', ()=>{
-    editingQuoId = null;
-    document.getElementById('quo-modal-title').textContent = 'নতুন কোটেশন';
-    document.getElementById('quo-client').value = '';
-    document.getElementById('quo-contact').value = '';
-    document.getElementById('quo-date').value = todayStr();
-    document.getElementById('quo-note').value = '';
-    quoItemsList.innerHTML = '';
-    addQuoItemRow();
-    quotationOverlay.classList.add('show');
-  });
-  document.getElementById('quotation-cancel').addEventListener('click', ()=> quotationOverlay.classList.remove('show'));
-
-  let isSavingQuo = false;
-  document.getElementById('quotation-save').addEventListener('click', async ()=>{
-    if(isSavingQuo) return;
-    const client = document.getElementById('quo-client').value.trim();
-    if(!client){ alert('ক্লায়েন্টের নাম দিন।'); return; }
-    const items = [];
-    quoItemsList.querySelectorAll('.quo-item-row').forEach(row=>{
-      const sel = row.querySelector('[data-role=name-select]');
-      const name = (sel.value === '__custom__') ? row.querySelector('[data-role=name-custom]').value.trim() : sel.value;
-      const qty = parseFloat(row.querySelector('[data-role=qty]').value) || 0;
-      const price = parseFloat(row.querySelector('[data-role=price]').value) || 0;
-      if(name && qty>0) items.push({name, qty, price, total: qty*price});
-    });
-    if(!items.length){ alert('কমপক্ষে একটা আইটেম যুক্ত করুন।'); return; }
-    isSavingQuo = true;
-    const saveBtn = document.getElementById('quotation-save');
-    saveBtn.disabled = true; saveBtn.textContent = 'সংরক্ষণ হচ্ছে...';
-    try{
-      const subtotal = items.reduce((s,it)=> s + it.total, 0);
-      const quote_number = editingQuoId ? state.quotations.find(q=>q.id===editingQuoId).quote_number : nextQuoteNumber();
-      const record = {
-        quote_number,
-        client_name: client,
-        client_contact: document.getElementById('quo-contact').value.trim(),
-        quote_date: document.getElementById('quo-date').value || todayStr(),
-        items,
-        subtotal,
-        note: document.getElementById('quo-note').value.trim()
-      };
-      if(editingQuoId){
-        const { error } = await sb.from('quotations').update(record).eq('id', editingQuoId);
-        if(error) throw error;
-      } else {
-        const { error } = await sb.from('quotations').insert(record);
-        if(error) throw error;
-      }
-      const { data } = await sb.from('quotations').select('*').order('quote_date', {ascending:false});
-      state.quotations = (data||[]).map(q=>({id:q.id, quote_number:q.quote_number, client:q.client_name, contact:q.client_contact, date:q.quote_date, items:q.items||[], subtotal:q.subtotal||0, note:q.note}));
-      renderQuotations();
-      quotationOverlay.classList.remove('show');
-    } catch(err){
-      alert('কোটেশন সংরক্ষণ করা যায়নি। কারণ: ' + (err.message || 'অজানা সমস্যা') + '\n\nসম্ভবত "quotations" টেবিলটা এখনো Supabase-এ তৈরি হয়নি — supabase-update-9.sql কোডটা রান করা হয়েছে কিনা যাচাই করুন।');
-    } finally {
-      isSavingQuo = false;
-      saveBtn.disabled = false; saveBtn.textContent = 'সংরক্ষণ করুন';
-    }
-  });
-
-  function filteredQuotations(){
-    const q = (quoSearch.value||'').toLowerCase();
-    const dFrom = document.getElementById('quo-date-from').value;
-    const dTo = document.getElementById('quo-date-to').value;
-    return state.quotations.filter(x =>
-      (x.client.toLowerCase().includes(q) || x.quote_number.toLowerCase().includes(q)) &&
-      (!dFrom || (x.date && x.date >= dFrom)) &&
-      (!dTo || (x.date && x.date <= dTo))
-    );
-  }
-  document.getElementById('quo-date-from').addEventListener('change', renderQuotations);
-  document.getElementById('quo-date-to').addEventListener('change', renderQuotations);
-  document.getElementById('quo-date-clear').addEventListener('click', ()=>{
-    document.getElementById('quo-date-from').value = '';
-    document.getElementById('quo-date-to').value = '';
-    renderQuotations();
-  });
-
-  function renderQuotations(){
-    const list = filteredQuotations();
-    quoTbody.innerHTML = '';
-    document.getElementById('quo-empty').style.display = state.quotations.length? 'none':'block';
-    list.forEach(quo=>{
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td class="mono">${escapeHtml(quo.quote_number)}</td>
-        <td>${escapeHtml(quo.client)}</td>
-        <td class="mono">${quo.date||'-'}</td>
-        <td class="mono">${quo.subtotal.toLocaleString('en-US')}</td>
-        <td>
-          <div class="row-actions">
-            <button class="btn" style="padding:4px 10px;font-size:12px;" data-editquo="${quo.id}">✎ এডিট</button>
-            <button class="btn" style="padding:4px 10px;font-size:12px;" data-printquo="${quo.id}">🖨</button>
-            <button class="btn" style="padding:4px 10px;font-size:12px;" data-pdfquo="${quo.id}">⬇ PDF</button>
-            <button class="icon-btn" style="width:28px;height:28px;font-size:13px;" data-delquo="${quo.id}">🗑</button>
-          </div>
-        </td>`;
-      quoTbody.appendChild(tr);
-    });
-    quoTbody.querySelectorAll('[data-editquo]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        const quo = state.quotations.find(x=>x.id===b.dataset.editquo);
-        editingQuoId = quo.id;
-        document.getElementById('quo-modal-title').textContent = 'কোটেশন সম্পাদনা করুন (' + quo.quote_number + ')';
-        document.getElementById('quo-client').value = quo.client;
-        document.getElementById('quo-contact').value = quo.contact || '';
-        document.getElementById('quo-date').value = quo.date;
-        document.getElementById('quo-note').value = quo.note || '';
-        quoItemsList.innerHTML = '';
-        quo.items.forEach(it=> addQuoItemRow(it));
-        quotationOverlay.classList.add('show');
-      });
-    });
-    quoTbody.querySelectorAll('[data-delquo]').forEach(b=>{
-      b.addEventListener('click', async ()=>{
-        if(!confirm('এই কোটেশনটা মুছে ফেলতে চান?')) return;
-        await sb.from('quotations').delete().eq('id', b.dataset.delquo);
-        state.quotations = state.quotations.filter(x=>x.id!==b.dataset.delquo);
-        renderQuotations();
-      });
-    });
-    quoTbody.querySelectorAll('[data-printquo]').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        const quo = state.quotations.find(x=>x.id===b.dataset.printquo);
-        buildQuotationPrintArea(quo);
-        window.print();
-      });
-    });
-    quoTbody.querySelectorAll('[data-pdfquo]').forEach(b=>{
-      b.addEventListener('click', async ()=>{
-        const quo = state.quotations.find(x=>x.id===b.dataset.pdfquo);
-        buildQuotationPrintArea(quo);
-        await downloadAsPDF('quotation-'+quo.quote_number);
-      });
-    });
-  }
-  quoSearch.addEventListener('input', renderQuotations);
-
-  document.getElementById('export-quo-btn').addEventListener('click', ()=>{
-    const list = filteredQuotations();
-    const rows = list.map(quo=>({'কোটেশন নং (Quote No)':quo.quote_number,'ক্লায়েন্ট (Client)':quo.client,'যোগাযোগ (Contact)':quo.contact||'','তারিখ (Date)':quo.date||'','সর্বমোট Taka (Subtotal)':quo.subtotal||0,'আইটেম সংখ্যা (Items)':quo.items.length}));
-    const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Quotations');
-    downloadWorkbook(wb, 'quotations-summary-'+todayStr()+'.xlsx');
-  });
-
-  function buildQuotationPrintArea(quo){
-    const area = document.getElementById('print-area');
-    area.innerHTML = `
-      ${buildLetterhead('কোটেশন')}
-      <div style="display:flex;justify-content:space-between;font-family:sans-serif;margin-bottom:14px;">
-        <div>
-          <div><strong>কোটেশন নং:</strong> ${escapeHtml(quo.quote_number)}</div>
-          <div><strong>ক্লায়েন্ট:</strong> ${escapeHtml(quo.client)}</div>
-          ${quo.contact ? `<div><strong>যোগাযোগ:</strong> ${escapeHtml(quo.contact)}</div>` : ''}
+    <!-- Main Dashboard Container -->
+    <main class="container mx-auto px-4 py-6 no-print">
+        
+        <!-- Tab Buttons -->
+        <div class="flex border-b border-gray-200 mb-6">
+            <button onclick="switchTab('quotation-tab')" id="btn-quotation" class="py-2 px-6 font-semibold border-b-2 border-blue-600 text-blue-600 focus:outline-none transition">
+                📄 কোটেশন ম্যানেজমেন্ট
+            </button>
+            <button onclick="switchTab('live-tab')" id="btn-live" class="py-2 px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-blue-600 focus:outline-none transition">
+                📺 লাইভ সিসিটিভি ক্যামেরা
+            </button>
         </div>
-        <div><strong>তারিখ:</strong> ${quo.date||''}</div>
-      </div>
-      <table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px;">
-        <thead><tr style="background:#eee;">
-          <th style="border:1px solid #999;padding:6px;">আইটেম</th><th style="border:1px solid #999;padding:6px;">পরিমাণ</th>
-          <th style="border:1px solid #999;padding:6px;">একক মূল্য (৳)</th><th style="border:1px solid #999;padding:6px;">মোট (৳)</th></tr></thead>
-        <tbody>${quo.items.map(it=>`
-          <tr><td style="border:1px solid #999;padding:6px;">${escapeHtml(it.name)}</td>
-          <td style="border:1px solid #999;padding:6px;">${it.qty}</td>
-          <td style="border:1px solid #999;padding:6px;">${it.price.toLocaleString('en-US')}</td>
-          <td style="border:1px solid #999;padding:6px;">${it.total.toLocaleString('en-US')}</td></tr>`).join('')}
-        </tbody>
-        <tfoot><tr><td colspan="3" style="border:1px solid #999;padding:6px;text-align:right;font-weight:700;">সর্বমোট</td>
-          <td style="border:1px solid #999;padding:6px;font-weight:700;">৳ ${quo.subtotal.toLocaleString('en-US')}</td></tr></tfoot>
-      </table>
-      ${quo.note ? `<p style="font-family:sans-serif;margin-top:14px;"><strong>শর্তাবলী / মন্তব্য:</strong><br>${escapeHtml(quo.note).replace(/\n/g,'<br>')}</p>` : ''}
-    `;
-  }
+
+        <!-- TAB 1: Quotation Management -->
+        <div id="quotation-tab" class="tab-content block">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-gray-700">কোটেশন তালিকা</h2>
+                <button onclick="openQuotationModal()" class="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-2 rounded-lg flex items-center gap-2 transition">
+                    ➕ নতুন কোটেশন তৈরি করুন
+                </button>
+            </div>
+
+            <!-- Quotation Table -->
+            <div class="bg-white shadow rounded-lg overflow-hidden">
+                <table class="min-w-full leading-normal">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 text-left text-sm uppercase tracking-wider">
+                            <th class="px-5 py-3 border-b-2 border-gray-200">Date / তারিখ</th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200">Client Name / ক্লায়েন্ট</th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200">Prepared By / প্রস্তুতকারী</th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 text-right">Total Amount / মোট টাকা</th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 text-center">Actions / অ্যাকশন</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quotation-list">
+                        <!-- Dynamic quotations loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TAB 2: Live CCTV View -->
+        <div id="live-tab" class="tab-content hidden">
+            <h2 class="text-lg font-bold text-gray-700 mb-4">লাইভ সিসিটিভি গ্রিড (৪টি ক্যামেরা)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Camera 1 -->
+                <div class="bg-black rounded-lg overflow-hidden relative group shadow">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded font-bold animate-pulse">🔴 LIVE - Camera 01</div>
+                    <div class="aspect-video bg-gray-900 flex items-center justify-center">
+                        <div class="text-gray-500 text-sm">সিগনাল সংযোগ করা হচ্ছে... (Camera 01)</div>
+                    </div>
+                </div>
+                <!-- Camera 2 -->
+                <div class="bg-black rounded-lg overflow-hidden relative group shadow">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded font-bold animate-pulse">🔴 LIVE - Camera 02</div>
+                    <div class="aspect-video bg-gray-900 flex items-center justify-center">
+                        <div class="text-gray-500 text-sm">সিগনাল সংযোগ করা হচ্ছে... (Camera 02)</div>
+                    </div>
+                </div>
+                <!-- Camera 3 -->
+                <div class="bg-black rounded-lg overflow-hidden relative group shadow">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded font-bold animate-pulse">🔴 LIVE - Camera 03</div>
+                    <div class="aspect-video bg-gray-900 flex items-center justify-center">
+                        <div class="text-gray-500 text-sm">সিগনাল সংযোগ করা হচ্ছে... (Camera 03)</div>
+                    </div>
+                </div>
+                <!-- Camera 4 -->
+                <div class="bg-black rounded-lg overflow-hidden relative group shadow">
+                    <div class="absolute top-2 left-2 bg-red-600 text-white text-xs px-2 py-0.5 rounded font-bold animate-pulse">🔴 LIVE - Camera 04</div>
+                    <div class="aspect-video bg-gray-900 flex items-center justify-center">
+                        <div class="text-gray-500 text-sm">সিগনাল সংযোগ করা হচ্ছে... (Camera 04)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- QUOTATION CREATE/EDIT MODAL -->
+    <div id="quotationModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden items-center justify-center z-50 no-print">
+        <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-3/4 max-h-[90vh] overflow-y-auto p-6 relative">
+            <h3 id="modalTitle" class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">নতুন কোটেশন তৈরি করুন</h3>
+            
+            <form id="quotationForm" onsubmit="saveQuotation(event)">
+                <input type="hidden" id="quotationId">
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">গ্রাহকের নাম / প্রতিষ্ঠানের নাম</label>
+                        <input type="text" id="clientName" required class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">প্রস্তুতকারীর নাম (Prepared By)</label>
+                        <input type="text" id="preparedBy" required class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" placeholder="উদাঃ মোঃ আব্দুল্লাহ">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-600 mb-1">তারিখ (Date)</label>
+                        <input type="date" id="quotationDate" required class="w-full border border-gray-300 rounded px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    </div>
+                </div>
+
+                <!-- Quotation Items Table with English Headers -->
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="block text-sm font-semibold text-gray-700">আইটেম সমূহের তালিকা</label>
+                        <button type="button" onclick="addItemRow()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded font-bold transition">
+                            ➕ আইটেম যোগ করুন
+                        </button>
+                    </div>
+                    
+                    <div class="overflow-x-auto border border-gray-200 rounded">
+                        <table class="min-w-full bg-white">
+                            <thead>
+                                <tr class="bg-gray-100 border-b border-gray-200 text-gray-700 text-xs font-bold text-left uppercase">
+                                    <th class="px-4 py-2 text-center w-12">SL.</th>
+                                    <th class="px-4 py-2 w-1/2">Item Description</th>
+                                    <th class="px-4 py-2 text-center w-20">Qty</th>
+                                    <th class="px-4 py-2 text-center w-24">Unit</th>
+                                    <th class="px-4 py-2 text-right w-28">Unit Price</th>
+                                    <th class="px-4 py-2 text-right w-32">Total Price</th>
+                                    <th class="px-4 py-2 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsContainer">
+                                <!-- Dynamic Item Rows added here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="flex justify-end mb-6">
+                    <div class="w-1/3 text-right">
+                        <p class="text-lg font-bold text-gray-800">সর্বমোট মূল্য: ৳ <span id="grandTotal">0.00</span></p>
+                    </div>
+                </div>
+
+                <!-- Modal Actions -->
+                <div class="flex justify-end gap-3 border-t pt-4">
+                    <button type="button" onclick="closeQuotationModal()" class="bg-gray-400 hover:bg-gray-500 text-white font-semibold px-4 py-2 rounded transition">
+                        বাতিল করুন
+                    </button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded transition">
+                        সংরক্ষণ করুন
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- PRINT VIEW AREA (Hidden on Screen, Visible on Print) -->
+    <div id="printArea" class="hidden p-8 bg-white text-black text-sm">
+        <!-- Letterhead Header -->
+        <div class="border-b-4 border-blue-700 pb-4 mb-6 flex justify-between items-end">
+            <div>
+                <h1 class="text-3xl font-extrabold text-blue-800 tracking-wider">ডিজিটাল সিকিউরিটি সলিউশনস</h1>
+                <p class="text-xs text-gray-600 mt-1">ঠিকানা: লিংকরোড, বাড্ডা, ঢাকা-১২১২ | ইমেইল: info@digitalsecurity.com</p>
+                <p class="text-xs text-gray-600">মোবাইল: ০১৮XXXXXXXX, ০১৭XXXXXXXX</p>
+            </div>
+            <div class="text-right">
+                <h2 class="text-xl font-bold text-gray-700 uppercase">Quotation / কোটেশন</h2>
+                <p class="text-xs mt-1">Date: <span id="printDate" class="font-bold"></span></p>
+                <p class="text-xs">Prepared By: <span id="printPreparedBy" class="font-bold"></span></p>
+            </div>
+        </div>
+
+        <!-- Client info -->
+        <div class="mb-6 bg-gray-50 p-4 rounded border">
+            <h3 class="font-bold text-gray-800 text-base mb-1">To:</h3>
+            <p class="text-lg font-semibold" id="printClientName"></p>
+            <p class="text-xs text-gray-500 mt-1">Subject: CCTV Camera System Setup & Materials Quotation.</p>
+        </div>
+
+        <!-- Print Table with English Headers -->
+        <table class="w-full mb-8 border-collapse border border-gray-300">
+            <thead>
+                <tr class="bg-gray-100 text-xs font-bold text-left uppercase border-b border-gray-300">
+                    <th class="border border-gray-300 px-3 py-2 text-center w-12">SL.</th>
+                    <th class="border border-gray-300 px-3 py-2">Item Description</th>
+                    <th class="border border-gray-300 px-3 py-2 text-center w-16">Qty</th>
+                    <th class="border border-gray-300 px-3 py-2 text-center w-20">Unit</th>
+                    <th class="border border-gray-300 px-3 py-2 text-right w-24">Unit Price</th>
+                    <th class="border border-gray-300 px-3 py-2 text-right w-28">Total Price</th>
+                </tr>
+            </thead>
+            <tbody id="printItemsList">
+                <!-- Items populated programmatically for print -->
+            </tbody>
+            <tfoot>
+                <tr class="font-bold">
+                    <td colspan="5" class="border border-gray-300 px-3 py-2 text-right uppercase">Grand Total (BDT):</td>
+                    <td class="border border-gray-300 px-3 py-2 text-right text-base" id="printGrandTotal">0.00</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <!-- Signatures -->
+        <div class="mt-20 flex justify-between">
+            <div class="text-center w-40 border-t border-gray-400 pt-2">
+                <p class="font-bold" id="printSignPreparedBy"></p>
+                <p class="text-xs text-gray-500">Prepared By</p>
+            </div>
+            <div class="text-center w-40 border-t border-gray-400 pt-2">
+                <p class="font-bold">গ্রাহকের স্বাক্ষর</p>
+                <p class="text-xs text-gray-500">Authorized Signature</p>
+            </div>
+        </div>
+    </div>
 
 
-  // ---------- ROAD FILTER INIT ----------
-  for(let i=1;i<=6;i++){
-    const opt = document.createElement('option'); opt.value=i; opt.textContent='রোড '+i;
-    filterRoad.appendChild(opt);
-  }
-})();
-</script>
+    <!-- APP LOGIC & SCRIPT -->
+    <script>
+        // Pre-defined CCTV items for easy selection (including Cable Joint)
+        const commonCCTVItems = [
+            "২ মেগাপিক্সেল বুলেট আইপি ক্যামেরা (2MP IP Camera)",
+            "ক্যাবল জয়েন্ট (Cable Joint)",
+            "Cat6 ইন্টারনেট ক্যাবল (Cat6 Cable - per Meter)",
+            "৮ পোর্ট পিওই সুইচ (8 Port PoE Switch)",
+            "৪ চ্যানেল এনভিআর (4 Channel NVR)",
+            "১ টেরাবাইট হার্ডডিস্ক (1TB Surveillance HDD)",
+            "ভিডিও বেলুন কানেক্টর (Video Balun)",
+            "ক্যামেরা এডাপ্টার ১২ ভোল্ট (12V Adapter)",
+            "ক্যামেরা পিভিসি বক্স (PVC Camera Box)"
+        ];
+
+        // Sample Units for CCTV Materials
+        const availableUnits = ["Pcs", "Meter", "Roll", "Box", "Set", "Job"];
+
+        let quotations = JSON.parse(localStorage.getItem('cctv_quotations')) || [];
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(tabId).classList.remove('hidden');
+            
+            // Toggle active classes on buttons
+            document.getElementById('btn-quotation').className = tabId === 'quotation-tab' ? 
+                "py-2 px-6 font-semibold border-b-2 border-blue-600 text-blue-600 focus:outline-none transition" : 
+                "py-2 px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-blue-600 focus:outline-none transition";
+                
+            document.getElementById('btn-live').className = tabId === 'live-tab' ? 
+                "py-2 px-6 font-semibold border-b-2 border-blue-600 text-blue-600 focus:outline-none transition" : 
+                "py-2 px-6 font-semibold border-b-2 border-transparent text-gray-500 hover:text-blue-600 focus:outline-none transition";
+        }
+
+        // Initialize App
+        window.onload = function() {
+            renderQuotations();
+            document.getElementById('quotationDate').value = new Date().toISOString().split('T')[0];
+        };
+
+        // Render quotations list
+        function renderQuotations() {
+            const list = document.getElementById('quotation-list');
+            list.innerHTML = '';
+            
+            if (quotations.length === 0) {
+                list.innerHTML = `<tr><td colspan="5" class="px-5 py-5 border-b border-gray-200 bg-white text-center text-gray-500">কোনো কোটেশন রেকর্ড পাওয়া যায়নি।</td></tr>`;
+                return;
+            }
+
+            quotations.forEach((q) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50";
+                tr.innerHTML = `
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm">${q.date}</td>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm font-semibold text-gray-800">${q.clientName}</td>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-gray-600">${q.preparedBy || 'N/A'}</td>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-right font-bold text-blue-600">৳ ${q.grandTotal.toFixed(2)}</td>
+                    <td class="px-5 py-4 border-b border-gray-200 bg-white text-sm text-center">
+                        <button onclick="printQuotation('${q.id}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs mr-1">প্রিন্ট</button>
+                        <button onclick="editQuotation('${q.id}')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-xs mr-1">সম্পাদনা</button>
+                        <button onclick="deleteQuotation('${q.id}')" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">মুছুন</button>
+                    </td>
+                `;
+                list.appendChild(tr);
+            });
+        }
+
+        // Open Modal
+        function openQuotationModal() {
+            document.getElementById('quotationId').value = '';
+            document.getElementById('quotationForm').reset();
+            document.getElementById('quotationDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('itemsContainer').innerHTML = '';
+            document.getElementById('modalTitle').innerText = "নতুন কোটেশন তৈরি করুন";
+            
+            addItemRow();
+            updateGrandTotal();
+            
+            document.getElementById('quotationModal').classList.remove('hidden');
+            document.getElementById('quotationModal').classList.add('flex');
+        }
+
+        // Close Modal
+        function closeQuotationModal() {
+            document.getElementById('quotationModal').classList.remove('flex');
+            document.getElementById('quotationModal').classList.add('hidden');
+        }
+
+        // Add dynamic item row to Modal Form
+        function addItemRow(itemData = null) {
+            const container = document.getElementById('itemsContainer');
+            const rowCount = container.children.length;
+            const newRow = document.createElement('tr');
+            newRow.className = "border-b border-gray-200 text-sm";
+            
+            const desc = itemData ? itemData.description : '';
+            const qty = itemData ? itemData.qty : 1;
+            const unit = itemData ? itemData.unit : 'Pcs';
+            const price = itemData ? itemData.price : 0;
+            const total = itemData ? itemData.total : 0;
+
+            // Generate option tags for units
+            let unitOptions = ``;
+            availableUnits.forEach(u => {
+                unitOptions += `<option value="${u}" ${unit === u ? 'selected' : ''}>${u}</option>`;
+            });
+
+            newRow.innerHTML = `
+                <td class="px-4 py-2 font-semibold text-gray-500 text-center row-index">${rowCount + 1}</td>
+                <td class="px-4 py-2">
+                    <input type="text" list="itemsList" class="w-full border rounded px-2 py-1 item-desc focus:outline-blue-500" value="${desc}" placeholder="আইটেম বা ক্যাবল জয়েন্ট লিখুন" required>
+                    <datalist id="itemsList">
+                        ${commonCCTVItems.map(i => `<option value="${i}"></option>`).join('')}
+                    </datalist>
+                </td>
+                <td class="px-4 py-2 w-20">
+                    <input type="number" class="w-full border rounded px-2 py-1 item-qty text-center focus:outline-blue-500" value="${qty}" min="1" oninput="calculateRowTotal(this)" required>
+                </td>
+                <td class="px-4 py-2 w-24">
+                    <select class="w-full border rounded px-2 py-1 item-unit focus:outline-blue-500">
+                        ${unitOptions}
+                    </select>
+                </td>
+                <td class="px-4 py-2 w-28">
+                    <input type="number" step="any" class="w-full border rounded px-2 py-1 item-price text-right focus:outline-blue-500" value="${price}" oninput="calculateRowTotal(this)" required>
+                </td>
+                <td class="px-4 py-2 text-right font-semibold text-gray-700 w-32">
+                    ৳ <span class="item-total-span">${total.toFixed(2)}</span>
+                    <input type="hidden" class="item-total-val" value="${total}">
+                </td>
+                <td class="px-4 py-2 text-center">
+                    <button type="button" onclick="removeItemRow(this)" class="text-red-600 hover:text-red-800 font-bold">✕</button>
+                </td>
+            `;
+            container.appendChild(newRow);
+            updateRowNumbers();
+        }
+
+        function removeItemRow(btn) {
+            btn.closest('tr').remove();
+            updateRowNumbers();
+            updateGrandTotal();
+        }
+
+        function updateRowNumbers() {
+            const rows = document.querySelectorAll('#itemsContainer tr');
+            rows.forEach((row, idx) => {
+                row.querySelector('.row-index').innerText = idx + 1;
+            });
+        }
+
+        // Calculate Row Total
+        function calculateRowTotal(input) {
+            const row = input.closest('tr');
+            const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
+            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            const total = qty * price;
+            
+            row.querySelector('.item-total-span').innerText = total.toFixed(2);
+            row.querySelector('.item-total-val').value = total;
+            
+            updateGrandTotal();
+        }
+
+        // Calculate Grand Total for the whole quotation
+        function updateGrandTotal() {
+            let grandTotal = 0;
+            document.querySelectorAll('.item-total-val').forEach(el => {
+                grandTotal += parseFloat(el.value) || 0;
+            });
+            document.getElementById('grandTotal').innerText = grandTotal.toFixed(2);
+        }
+
+        // Save Quotation (Create / Update)
+        function saveQuotation(event) {
+            event.preventDefault();
+            
+            const qId = document.getElementById('quotationId').value;
+            const clientName = document.getElementById('clientName').value;
+            const preparedBy = document.getElementById('preparedBy').value;
+            const date = document.getElementById('quotationDate').value;
+            
+            // Build items list
+            const items = [];
+            const rows = document.querySelectorAll('#itemsContainer tr');
+            rows.forEach(row => {
+                const description = row.querySelector('.item-desc').value;
+                const qty = parseFloat(row.querySelector('.item-qty').value);
+                const unit = row.querySelector('.item-unit').value;
+                const price = parseFloat(row.querySelector('.item-price').value);
+                const total = parseFloat(row.querySelector('.item-total-val').value);
+                
+                items.push({ description, qty, unit, price, total });
+            });
+
+            const grandTotal = items.reduce((sum, item) => sum + item.total, 0);
+
+            if (qId) {
+                const index = quotations.findIndex(q => q.id === qId);
+                quotations[index] = { id: qId, clientName, preparedBy, date, items, grandTotal };
+            } else {
+                const newQuotation = {
+                    id: 'q_' + Date.now(),
+                    clientName,
+                    preparedBy,
+                    date,
+                    items,
+                    grandTotal
+                };
+                quotations.push(newQuotation);
+            }
+
+            localStorage.setItem('cctv_quotations', JSON.stringify(quotations));
+            renderQuotations();
+            closeQuotationModal();
+        }
+
+        // Edit Quotation
+        function editQuotation(id) {
+            const q = quotations.find(item => item.id === id);
+            if (!q) return;
+
+            document.getElementById('quotationId').value = q.id;
+            document.getElementById('clientName').value = q.clientName;
+            document.getElementById('preparedBy').value = q.preparedBy || '';
+            document.getElementById('quotationDate').value = q.date;
+            document.getElementById('modalTitle').innerText = "কোটেশন সম্পাদনা করুন";
+
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = '';
+            
+            q.items.forEach(item => {
+                addItemRow(item);
+            });
+
+            updateGrandTotal();
+            
+            document.getElementById('quotationModal').classList.remove('hidden');
+            document.getElementById('quotationModal').classList.add('flex');
+        }
+
+        // Delete Quotation
+        function deleteQuotation(id) {
+            if (confirm("আপনি কি নিশ্চিতভাবে এই কোটেশনটি ডিলিট করতে চান?")) {
+                quotations = quotations.filter(q => q.id !== id);
+                localStorage.setItem('cctv_quotations', JSON.stringify(quotations));
+                renderQuotations();
+            }
+        }
+
+        // Print Functionality (Generates elegant printable layout)
+        function printQuotation(id) {
+            const q = quotations.find(item => item.id === id);
+            if (!q) return;
+
+            // Set up meta info for print page
+            document.getElementById('printClientName').innerText = q.clientName;
+            document.getElementById('printDate').innerText = q.date;
+            document.getElementById('printPreparedBy').innerText = q.preparedBy || 'N/A';
+            document.getElementById('printSignPreparedBy').innerText = q.preparedBy || 'N/A';
+            document.getElementById('printGrandTotal').innerText = "৳ " + q.grandTotal.toFixed(2);
+
+            // Populate print table with English headers and item rows
+            const printList = document.getElementById('printItemsList');
+            printList.innerHTML = '';
+            
+            q.items.forEach((item, idx) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="border border-gray-300 px-3 py-2 text-center">${idx + 1}</td>
+                    <td class="border border-gray-300 px-3 py-2 font-medium">${item.description}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-center">${item.qty}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-center">${item.unit}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-right">৳ ${item.price.toFixed(2)}</td>
+                    <td class="border border-gray-300 px-3 py-2 text-right font-semibold">৳ ${item.total.toFixed(2)}</td>
+                `;
+                printList.appendChild(tr);
+            });
+
+            // Trigger Browser Print Dialog
+            window.print();
+        }
+    </script>
+</body>
+</html>
