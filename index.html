@@ -1,13 +1,3 @@
-<!DOCTYPE html>
-<html lang="bn">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CCTV Stock & Maintenance</title>
-<link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#2fb8a6">
-<link rel="icon" href="./icon-192.png">
-<link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -150,8 +140,6 @@
   @keyframes spin{to{transform:rotate(360deg);}}
 </style>
 
-</head>
-<body>
 <div id="config-warning">
   <div class="box">
     <h2>⚠ সেটআপ বাকি আছে</h2>
@@ -215,7 +203,7 @@
         <button class="btn btn-primary" id="add-eq-btn">+ নতুন সরঞ্জাম</button>
       </div>
       <table>
-        <thead><tr><th>সরঞ্জামের নাম (English)</th><th>ইউনিট</th><th>বর্তমান মজুদ</th><th>সর্বশেষ এন্ট্রি</th><th style="width:190px;">দ্রুত পরিবর্তন</th><th style="width:70px;"></th></tr></thead>
+        <thead><tr><th>Item Name (English)</th><th>Unit</th><th>Current Stock</th><th>Last Entry</th><th style="width:190px;">Quick Adjust</th><th style="width:70px;"></th></tr></thead>
         <tbody id="eq-tbody"></tbody>
       </table>
       <div class="empty-state" id="eq-empty" style="display:none;"><div class="big">📦</div><div>এখনো কোনো সরঞ্জাম যুক্ত করা হয়নি।</div></div>
@@ -234,7 +222,7 @@
         <button class="btn btn-primary" id="add-purchase-btn">+ নতুন ক্রয়</button>
       </div>
       <table>
-        <thead><tr><th>সরঞ্জাম</th><th>পরিমাণ</th><th>সরবরাহকারী</th><th>ক্রয়মূল্য (৳)</th><th>মন্তব্য</th><th>ভাউচার</th><th style="width:60px;"></th></tr></thead>
+        <thead><tr><th>Item</th><th>Quantity</th><th>Supplier</th><th>Cost (৳)</th><th>Note</th><th>Voucher</th><th style="width:60px;"></th></tr></thead>
         <tbody id="pur-tbody"></tbody>
       </table>
       <div class="empty-state" id="pur-empty" style="display:none;"><div class="big">🧾</div><div>এখনো কোনো ক্রয় রেকর্ড যুক্ত করা হয়নি। "+ নতুন ক্রয়" চেপে শুরু করুন।</div></div>
@@ -256,7 +244,7 @@
         <button class="btn btn-primary" id="add-record-btn">+ নতুন রেকর্ড</button>
       </div>
       <table>
-        <thead><tr><th>রোড</th><th>ক্যামেরা নং</th><th>ব্র্যান্ড</th><th>ক্যামেরার ধরন</th><th>ক্যাবল (মি.)</th><th>এনভিআর</th><th>ব্যবহৃত মালামাল</th><th>মন্তব্য</th><th>খরচ (৳)</th><th style="width:60px;"></th></tr></thead>
+        <thead><tr><th>Road</th><th>Camera No</th><th>Brand</th><th>Camera Type</th><th>Cable (m)</th><th>NVR</th><th>Materials Used</th><th>Note</th><th>Cost (৳)</th><th style="width:60px;"></th></tr></thead>
         <tbody id="rec-tbody"></tbody>
       </table>
       <div class="empty-state" id="rec-empty" style="display:none;"><div class="big">🎥</div><div>এখনো কোনো মেরামত রেকর্ড যুক্ত করা হয়নি।</div></div>
@@ -274,7 +262,7 @@
       </div>
       <p style="font-size:12px;color:var(--ink-dim);margin-top:-6px;">প্রতিটা কোটেশনের নিজস্ব প্রিন্ট/PDF বাটন নিচের তালিকায় "🖨" ও "⬇" চিহ্নে পাবেন।</p>
       <table>
-        <thead><tr><th>কোটেশন নং</th><th>ক্লায়েন্ট</th><th>তারিখ</th><th>সর্বমোট (৳)</th><th style="width:170px;"></th></tr></thead>
+        <thead><tr><th>Quote No</th><th>Client</th><th>Date</th><th>Total (৳)</th><th style="width:170px;"></th></tr></thead>
         <tbody id="quo-tbody"></tbody>
       </table>
       <div class="empty-state" id="quo-empty" style="display:none;"><div class="big">📄</div><div>এখনো কোনো কোটেশন তৈরি করা হয়নি। "+ নতুন কোটেশন" চেপে শুরু করুন।</div></div>
@@ -344,7 +332,12 @@
       <div id="materials-list"></div>
       <button class="btn" id="add-material-row" style="margin-top:4px;">+ মালামাল যুক্ত করুন</button>
     </div>
-    <div class="field"><label>খরচ (৳ টাকা) — ঐচ্ছিক</label><input type="number" id="rec-cost" placeholder="যেমন: 5000" min="0"></div>
+    <div class="field">
+      <label>ক্যাবল জয়েন্ট / সার্ভিস আইটেম (নাম ও খরচ, ঐচ্ছিক)</label>
+      <div id="service-items-list"></div>
+      <button class="btn" id="add-service-row" style="margin-top:4px;">+ জয়েন্ট/সার্ভিস আইটেম যুক্ত করুন</button>
+    </div>
+    <div class="field"><label>অতিরিক্ত খরচ (৳ টাকা) — ঐচ্ছিক</label><input type="number" id="rec-cost" placeholder="যেমন: 5000" min="0"></div>
     <div class="field"><label>কাজের বিবরণ / মন্তব্য (কোনো মালামাল না লাগলেও সাধারণ কাজের বিবরণ লিখুন)</label><textarea id="rec-note" rows="2" placeholder="যেমন: শুধু ক্যামেরা পরিষ্কার ও চেক করা হয়েছে, কোনো মালামাল লাগেনি"></textarea></div>
     <div class="modal-actions"><button class="btn" id="rec-cancel">বাতিল</button><button class="btn btn-primary" id="rec-save">সংরক্ষণ করুন</button></div>
   </div>
@@ -389,6 +382,7 @@
       <div class="field"><label>ঠিকানা/যোগাযোগ (ঐচ্ছিক)</label><input type="text" id="quo-contact" placeholder="ঠিকানা বা ফোন নম্বর"></div>
     </div>
     <div class="field"><label>তারিখ</label><input type="date" id="quo-date"></div>
+    <div class="field"><label>কোটেশন প্রস্তুতকারীর নাম (ঐচ্ছিক)</label><input type="text" id="quo-prepared-by" placeholder="যিনি এই কোটেশন তৈরি করছেন তার নাম"></div>
     <div class="field">
       <label>আইটেম তালিকা</label>
       <div id="quo-items-list"></div>
@@ -516,12 +510,12 @@
     state.brands = (brandRes.data || []).map(b=>b.name);
     state.records = (recRes.data || []).map(r=>({
       id:r.id, road:r.road, camera:r.camera, brand:r.brand, camera_type:r.camera_type, cable:r.cable,
-      nvr:r.nvr, date:r.record_date, note:r.note, cost:r.cost||0, materials:r.materials||[]
+      nvr:r.nvr, date:r.record_date, note:r.note, cost:r.cost||0, service_items:r.service_items||[], materials:r.materials||[]
     }));
     state.settings = setRes.data || {company_name:'', address:'', logo_base64:null, accent_color:'#2fb8a6', theme:'dark'};
     state.stockLog = logRes.data || [];
     state.purchases = (purRes.data || []).map(p=>({id:p.id, name:p.name, unit:p.unit, qty:p.qty, cost:p.cost||0, supplier:p.supplier, note:p.note, date:p.purchase_date, receipt_image:p.receipt_image}));
-    state.quotations = (quoRes.data || []).map(q=>({id:q.id, quote_number:q.quote_number, client:q.client_name, contact:q.client_contact, date:q.quote_date, items:q.items||[], subtotal:q.subtotal||0, note:q.note}));
+    state.quotations = (quoRes.data || []).map(q=>({id:q.id, quote_number:q.quote_number, client:q.client_name, contact:q.client_contact, prepared_by:q.prepared_by, date:q.quote_date, items:q.items||[], subtotal:q.subtotal||0, note:q.note}));
     applyAccentColor(state.settings.accent_color || '#2fb8a6');
     applyTheme(state.settings.theme || 'dark');
   }
@@ -1265,6 +1259,24 @@
   }
   document.getElementById('add-material-row').addEventListener('click', ()=> addMaterialRow());
 
+  const serviceItemsList = document.getElementById('service-items-list');
+  function addServiceItemRow(item){
+    const row = document.createElement('div');
+    row.className = 'materials-row';
+    const nameInp = document.createElement('input');
+    nameInp.type='text'; nameInp.placeholder='যেমন: Fiber Joint, Cable Splice'; nameInp.style.flex='2';
+    nameInp.value = item ? item.name : '';
+    const costInp = document.createElement('input');
+    costInp.type='number'; costInp.min='0'; costInp.placeholder='খরচ (৳)'; costInp.style.flex='1';
+    costInp.value = item ? item.cost : '';
+    const rm = document.createElement('button');
+    rm.className='mini-btn minus'; rm.textContent='×';
+    rm.addEventListener('click', ()=> row.remove());
+    row.appendChild(nameInp); row.appendChild(costInp); row.appendChild(rm);
+    serviceItemsList.appendChild(row);
+  }
+  document.getElementById('add-service-row').addEventListener('click', ()=> addServiceItemRow());
+
   document.getElementById('add-record-btn').addEventListener('click', ()=>{
     document.getElementById('rec-road').value='1';
     document.getElementById('rec-camera').value='';
@@ -1273,6 +1285,7 @@
     document.getElementById('rec-cost').value='';
     document.getElementById('rec-date').value = new Date().toISOString().slice(0,10);
     materialsList.innerHTML='';
+    serviceItemsList.innerHTML='';
     recCableAuto.textContent = '0 মিটার';
     selectedBrand = '';
     renderBrandPicker();
@@ -1301,6 +1314,14 @@
       const cableTotal = recalcCableAuto();
       const recDate = document.getElementById('rec-date').value;
       const roadVal = document.getElementById('rec-road').value;
+      const serviceItems = [];
+      serviceItemsList.querySelectorAll('.materials-row').forEach(row=>{
+        const inputs = row.querySelectorAll('input');
+        const name = inputs[0].value.trim();
+        const cost = parseFloat(inputs[1].value) || 0;
+        if(name) serviceItems.push({name, cost});
+      });
+      const serviceItemsCost = serviceItems.reduce((s,it)=> s + it.cost, 0);
       // মালামাল থেকে ক্যামেরা-জাতীয় আইটেম শনাক্ত করে "IP Camera x2" এর মতো লেখা তৈরি করা হচ্ছে
       const CAMERA_TYPE_NAMES = ['Dome Camera','Bullet Camera','PTZ Camera','IP Camera','Analog Camera (AHD/CVI/TVI)'];
       const camTallies = {};
@@ -1325,12 +1346,13 @@
         nvr: document.getElementById('rec-nvr').value,
         record_date: recDate,
         note: document.getElementById('rec-note').value.trim(),
-        cost: parseFloat(document.getElementById('rec-cost').value) || 0,
+        cost: (parseFloat(document.getElementById('rec-cost').value) || 0) + serviceItemsCost,
+        service_items: serviceItems,
         materials
       };
       await sb.from('records').insert(record);
       const { data } = await sb.from('records').select('*').order('record_date', {ascending:false});
-      state.records = (data||[]).map(r=>({id:r.id, road:r.road, camera:r.camera, brand:r.brand, camera_type:r.camera_type, cable:r.cable, nvr:r.nvr, date:r.record_date, note:r.note, cost:r.cost||0, materials:r.materials||[]}));
+      state.records = (data||[]).map(r=>({id:r.id, road:r.road, camera:r.camera, brand:r.brand, camera_type:r.camera_type, cable:r.cable, nvr:r.nvr, date:r.record_date, note:r.note, cost:r.cost||0, service_items:r.service_items||[], materials:r.materials||[]}));
       renderRecords(); renderEquipment();
       recOverlay.classList.remove('show');
     } finally {
@@ -1384,7 +1406,10 @@
       recTbody.appendChild(headerTr);
       g.items.forEach(r=>{
         const tr = document.createElement('tr');
-        const materialsDisplay = (r.materials && r.materials.length) ? r.materials.map(m=>escapeHtml(m.name)+' x'+m.qty).join(', ') : '-';
+        const materialsParts = [];
+        if(r.materials && r.materials.length) materialsParts.push(r.materials.map(m=>escapeHtml(m.name)+' x'+m.qty).join(', '));
+        if(r.service_items && r.service_items.length) materialsParts.push(r.service_items.map(s=>escapeHtml(s.name)+' (৳'+s.cost.toLocaleString('en-US')+')').join(', '));
+        const materialsDisplay = materialsParts.length ? materialsParts.join(' | ') : '-';
         tr.innerHTML = `
           <td><span class="tag road">রোড ${r.road}</span></td>
           <td class="mono">${escapeHtml(r.camera)}</td>
@@ -1438,7 +1463,7 @@
             <td style="border:1px solid #999;padding:6px;">${escapeHtml(r.camera_type||'-')}</td>
             <td style="border:1px solid #999;padding:6px;">${r.cable}</td>
             <td style="border:1px solid #999;padding:6px;">${r.nvr==='yes'?'হ্যাঁ':'না'}</td>
-            <td style="border:1px solid #999;padding:6px;">${r.materials.map(m=>escapeHtml(m.name)+' x'+m.qty).join(', ')||'-'}</td>
+            <td style="border:1px solid #999;padding:6px;">${[r.materials.map(m=>escapeHtml(m.name)+' x'+m.qty).join(', '), (r.service_items||[]).map(s=>escapeHtml(s.name)+' (৳'+s.cost.toLocaleString('en-US')+')').join(', ')].filter(Boolean).join(' | ')||'-'}</td>
             <td style="border:1px solid #999;padding:6px;">${escapeHtml(r.note)||'-'}</td>
             <td style="border:1px solid #999;padding:6px;">${r.cost ? r.cost.toLocaleString('en-US') : '-'}</td></tr>`).join('')}
           </tbody>
@@ -1472,7 +1497,7 @@
     const list = filteredRecords();
     const rows = list.map(r=>({'তারিখ (Date)':r.date||'','রোড (Road)':r.road,'ক্যামেরা নং (Camera No)':r.camera,'ব্র্যান্ড (Brand)':r.brand||'','ক্যামেরার ধরন (Camera Type)':r.camera_type||'',
       'ক্যাবল মিটার (Cable m)':r.cable,'এনভিআর (NVR)':r.nvr==='yes'?'হ্যাঁ':'না',
-      'ব্যবহৃত মালামাল (Materials Used)':r.materials.map(m=>m.name+' x'+m.qty).join(', '),'মন্তব্য (Note)':r.note||'','খরচ Taka (Cost)':r.cost||0}));
+      'ব্যবহৃত মালামাল (Materials Used)':[r.materials.map(m=>m.name+' x'+m.qty).join(', '), (r.service_items||[]).map(s=>s.name+' (৳'+s.cost+')').join(', ')].filter(Boolean).join(' | '),'মন্তব্য (Note)':r.note||'','খরচ Taka (Cost)':r.cost||0}));
     const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, 'Maintenance Records');
     downloadWorkbook(wb, 'maintenance-records-'+new Date().toISOString().slice(0,10)+'.xlsx');
@@ -1581,23 +1606,29 @@
     row.className = 'quo-item-row';
     const options = getUnifiedEquipmentOptions();
     const matched = item ? options.some(o=>o.name.toLowerCase()===item.name.toLowerCase()) : false;
-    const optionsHtml = options.map(o=>`<option value="${escapeHtml(o.name)}">${escapeHtml(o.name)}</option>`).join('')
+    const optionsHtml = options.map(o=>`<option value="${escapeHtml(o.name)}" data-unit="${o.unit}">${escapeHtml(o.name)}</option>`).join('')
       + `<option value="__custom__">— নিজে লিখুন / Custom —</option>`;
     row.innerHTML = `
       <select data-role="name-select" style="flex:2;">${optionsHtml}</select>
-      <input type="text" data-role="name-custom" placeholder="আইটেমের নাম লিখুন" style="flex:2;display:none;">
-      <input type="number" data-role="qty" placeholder="পরিমাণ" min="0" value="${item ? item.qty : 1}">
-      <input type="number" data-role="price" placeholder="একক মূল্য (৳)" min="0" value="${item ? item.price : ''}">
+      <input type="text" data-role="name-custom" placeholder="Item name" style="flex:2;display:none;">
+      <input type="number" data-role="qty" placeholder="Qty" min="0" value="${item ? item.qty : 1}">
+      <select data-role="unit" style="flex:1;"><option value="pcs">pcs</option><option value="meter">meter</option><option value="box">box</option><option value="set">set</option><option value="job">job</option></select>
+      <input type="number" data-role="price" placeholder="Unit price (৳)" min="0" value="${item ? item.price : ''}">
       <span class="quo-line-total mono">৳ 0</span>
       <button class="mini-btn minus" type="button">×</button>
     `;
     const selectEl = row.querySelector('[data-role=name-select]');
     const customEl = row.querySelector('[data-role=name-custom]');
-    if(item && matched){ selectEl.value = item.name; }
-    else if(item && !matched){ selectEl.value = '__custom__'; customEl.style.display='block'; customEl.value = item.name; }
+    const unitEl = row.querySelector('[data-role=unit]');
+    if(item && matched){ selectEl.value = item.name; unitEl.value = item.unit || 'pcs'; }
+    else if(item && !matched){ selectEl.value = '__custom__'; customEl.style.display='block'; customEl.value = item.name; unitEl.value = item.unit || 'pcs'; }
     selectEl.addEventListener('change', ()=>{
       if(selectEl.value === '__custom__'){ customEl.style.display = 'block'; customEl.value=''; }
-      else { customEl.style.display = 'none'; }
+      else {
+        customEl.style.display = 'none';
+        const opt = selectEl.selectedOptions[0];
+        if(opt) unitEl.value = opt.dataset.unit || 'pcs';
+      }
     });
     row.querySelector('.mini-btn').addEventListener('click', ()=>{ row.remove(); recalcQuoTotal(); });
     row.querySelectorAll('input[data-role=qty], input[data-role=price]').forEach(inp=> inp.addEventListener('input', recalcQuoTotal));
@@ -1617,6 +1648,7 @@
     document.getElementById('quo-client').value = '';
     document.getElementById('quo-contact').value = '';
     document.getElementById('quo-date').value = todayStr();
+    document.getElementById('quo-prepared-by').value = '';
     document.getElementById('quo-note').value = '';
     quoItemsList.innerHTML = '';
     addQuoItemRow();
@@ -1633,9 +1665,10 @@
     quoItemsList.querySelectorAll('.quo-item-row').forEach(row=>{
       const sel = row.querySelector('[data-role=name-select]');
       const name = (sel.value === '__custom__') ? row.querySelector('[data-role=name-custom]').value.trim() : sel.value;
+      const unit = row.querySelector('[data-role=unit]').value;
       const qty = parseFloat(row.querySelector('[data-role=qty]').value) || 0;
       const price = parseFloat(row.querySelector('[data-role=price]').value) || 0;
-      if(name && qty>0) items.push({name, qty, price, total: qty*price});
+      if(name && qty>0) items.push({name, unit, qty, price, total: qty*price});
     });
     if(!items.length){ alert('কমপক্ষে একটা আইটেম যুক্ত করুন।'); return; }
     isSavingQuo = true;
@@ -1648,6 +1681,7 @@
         quote_number,
         client_name: client,
         client_contact: document.getElementById('quo-contact').value.trim(),
+        prepared_by: document.getElementById('quo-prepared-by').value.trim(),
         quote_date: document.getElementById('quo-date').value || todayStr(),
         items,
         subtotal,
@@ -1661,7 +1695,7 @@
         if(error) throw error;
       }
       const { data } = await sb.from('quotations').select('*').order('quote_date', {ascending:false});
-      state.quotations = (data||[]).map(q=>({id:q.id, quote_number:q.quote_number, client:q.client_name, contact:q.client_contact, date:q.quote_date, items:q.items||[], subtotal:q.subtotal||0, note:q.note}));
+      state.quotations = (data||[]).map(q=>({id:q.id, quote_number:q.quote_number, client:q.client_name, contact:q.client_contact, prepared_by:q.prepared_by, date:q.quote_date, items:q.items||[], subtotal:q.subtotal||0, note:q.note}));
       renderQuotations();
       quotationOverlay.classList.remove('show');
     } catch(err){
@@ -1719,6 +1753,7 @@
         document.getElementById('quo-client').value = quo.client;
         document.getElementById('quo-contact').value = quo.contact || '';
         document.getElementById('quo-date').value = quo.date;
+        document.getElementById('quo-prepared-by').value = quo.prepared_by || '';
         document.getElementById('quo-note').value = quo.note || '';
         quoItemsList.innerHTML = '';
         quo.items.forEach(it=> addQuoItemRow(it));
@@ -1761,29 +1796,32 @@
   function buildQuotationPrintArea(quo){
     const area = document.getElementById('print-area');
     area.innerHTML = `
-      ${buildLetterhead('কোটেশন')}
+      ${buildLetterhead('Quotation')}
       <div style="display:flex;justify-content:space-between;font-family:sans-serif;margin-bottom:14px;">
         <div>
-          <div><strong>কোটেশন নং:</strong> ${escapeHtml(quo.quote_number)}</div>
-          <div><strong>ক্লায়েন্ট:</strong> ${escapeHtml(quo.client)}</div>
-          ${quo.contact ? `<div><strong>যোগাযোগ:</strong> ${escapeHtml(quo.contact)}</div>` : ''}
+          <div><strong>Quote No:</strong> ${escapeHtml(quo.quote_number)}</div>
+          <div><strong>Client:</strong> ${escapeHtml(quo.client)}</div>
+          ${quo.contact ? `<div><strong>Contact:</strong> ${escapeHtml(quo.contact)}</div>` : ''}
+          ${quo.prepared_by ? `<div><strong>Prepared By:</strong> ${escapeHtml(quo.prepared_by)}</div>` : ''}
         </div>
-        <div><strong>তারিখ:</strong> ${quo.date||''}</div>
+        <div><strong>Date:</strong> ${quo.date||''}</div>
       </div>
       <table style="width:100%;border-collapse:collapse;font-family:sans-serif;font-size:13px;">
         <thead><tr style="background:#eee;">
-          <th style="border:1px solid #999;padding:6px;">আইটেম</th><th style="border:1px solid #999;padding:6px;">পরিমাণ</th>
-          <th style="border:1px solid #999;padding:6px;">একক মূল্য (৳)</th><th style="border:1px solid #999;padding:6px;">মোট (৳)</th></tr></thead>
+          <th style="border:1px solid #999;padding:6px;">Item</th><th style="border:1px solid #999;padding:6px;">Qty</th>
+          <th style="border:1px solid #999;padding:6px;">Unit</th>
+          <th style="border:1px solid #999;padding:6px;">Unit Price (৳)</th><th style="border:1px solid #999;padding:6px;">Total (৳)</th></tr></thead>
         <tbody>${quo.items.map(it=>`
           <tr><td style="border:1px solid #999;padding:6px;">${escapeHtml(it.name)}</td>
           <td style="border:1px solid #999;padding:6px;">${it.qty}</td>
+          <td style="border:1px solid #999;padding:6px;">${escapeHtml(it.unit||'pcs')}</td>
           <td style="border:1px solid #999;padding:6px;">${it.price.toLocaleString('en-US')}</td>
           <td style="border:1px solid #999;padding:6px;">${it.total.toLocaleString('en-US')}</td></tr>`).join('')}
         </tbody>
-        <tfoot><tr><td colspan="3" style="border:1px solid #999;padding:6px;text-align:right;font-weight:700;">সর্বমোট</td>
+        <tfoot><tr><td colspan="4" style="border:1px solid #999;padding:6px;text-align:right;font-weight:700;">Total</td>
           <td style="border:1px solid #999;padding:6px;font-weight:700;">৳ ${quo.subtotal.toLocaleString('en-US')}</td></tr></tfoot>
       </table>
-      ${quo.note ? `<p style="font-family:sans-serif;margin-top:14px;"><strong>শর্তাবলী / মন্তব্য:</strong><br>${escapeHtml(quo.note).replace(/\n/g,'<br>')}</p>` : ''}
+      ${quo.note ? `<p style="font-family:sans-serif;margin-top:14px;"><strong>Terms / Note:</strong><br>${escapeHtml(quo.note).replace(/\n/g,'<br>')}</p>` : ''}
     `;
   }
 
@@ -1795,12 +1833,3 @@
   }
 })();
 </script>
-<script>
-  if('serviceWorker' in navigator){
-    window.addEventListener('load', ()=>{
-      navigator.serviceWorker.register('./sw.js').catch(()=>{});
-    });
-  }
-</script>
-</body>
-</html>
